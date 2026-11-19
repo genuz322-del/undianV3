@@ -1,0 +1,2106 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>FITUR V1 - Premium Dashboard</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Rajdhani:wght@500;600;700&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
+<style>
+:root{--neon-blue:#00f0ff;--neon-blue-glow:rgba(0,240,255,.3);--glass-bg:rgba(0,10,30,.25);--glass-border:rgba(0,240,255,.3);--card-bg:rgba(0,15,40,.3);--text-main:#fff;--text-muted:#9bc1e0}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Inter',sans-serif;background:#000;color:var(--text-main);height:100vh;width:100vw;display:flex;justify-content:center;align-items:center;overflow:hidden}
+
+/* LOADING */
+#loading-screen{position:fixed;inset:0;background:#020b1a;z-index:999999;display:flex;flex-direction:column;justify-content:center;align-items:center;transition:opacity .6s,visibility .6s}
+.loader-ring-wrapper{position:relative;width:120px;height:120px;display:flex;justify-content:center;align-items:center;margin-bottom:20px}
+.loader-ring{position:absolute;width:100%;height:100%;border:3px solid transparent;border-top:3px solid var(--neon-blue);border-bottom:3px solid var(--neon-blue);border-radius:50%;animation:spin 1.5s linear infinite;box-shadow:0 0 20px var(--neon-blue-glow)}
+.loader-ring-inner{position:absolute;width:80%;height:80%;border:2px dashed #0050ff;border-radius:50%;animation:spin-reverse 2s linear infinite}
+.loader-icon{font-size:40px;color:var(--neon-blue);filter:drop-shadow(0 0 10px var(--neon-blue));animation:pulse 1.5s infinite alternate}
+@keyframes spin{100%{transform:rotate(360deg)}}
+@keyframes spin-reverse{100%{transform:rotate(-360deg)}}
+@keyframes pulse{0%{transform:scale(.9)}100%{transform:scale(1.1)}}
+.loader-title{font-family:'Orbitron',sans-serif;font-size:20px;font-weight:900;letter-spacing:4px;text-shadow:0 0 10px var(--neon-blue),0 0 20px var(--neon-blue);margin-bottom:5px;animation:blink-text 2s infinite}
+.loader-subtitle{font-family:'Rajdhani',sans-serif;font-size:12px;color:var(--neon-blue);letter-spacing:2px;margin-bottom:30px}
+@keyframes blink-text{0%,100%{opacity:1}50%{opacity:.5}}
+.loader-progress-track{width:80%;max-width:300px;height:10px;background:rgba(0,0,0,.8);border:1px solid var(--glass-border);border-radius:5px;overflow:hidden;margin-bottom:10px}
+.loader-progress-fill{height:100%;width:0%;background:linear-gradient(90deg,#0050ff,var(--neon-blue));box-shadow:0 0 15px var(--neon-blue);border-radius:5px;transition:width .1s linear}
+.loader-percentage{font-family:'Orbitron',sans-serif;font-size:18px;font-weight:700;text-shadow:0 0 10px var(--neon-blue)}
+.fade-out{opacity:0;visibility:hidden}
+
+/* BACKGROUND */
+.bg-container{position:fixed;inset:0;background:#020b1a url('https://res.cloudinary.com/iazyafgr/image/upload/f_auto,q_auto/1000106341') center/cover no-repeat;z-index:-2}
+.bg-overlay{position:fixed;inset:0;background:rgba(0,5,15,.2);z-index:-1}
+
+/* DASHBOARD */
+.dashboard{width:96vw;height:94vh;max-width:1400px;background:var(--glass-bg);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:2px solid var(--neon-blue);border-radius:15px;box-shadow:0 0 20px var(--neon-blue-glow);display:flex;flex-direction:column;overflow:hidden;position:relative;opacity:0;transition:opacity .8s}
+.show-dashboard{opacity:1}
+
+header{height:56px;display:flex;align-items:center;padding:0 20px;border-bottom:1px solid var(--glass-border);background:rgba(0,10,30,.15);flex-shrink:0}
+.brand{display:flex;align-items:center;gap:12px}
+.brand-icon{font-size:22px;color:var(--neon-blue);filter:drop-shadow(0 0 5px var(--neon-blue))}
+.brand-text h1{font-family:'Rajdhani',sans-serif;font-size:20px;letter-spacing:1px}
+.brand-text p{font-size:11px;color:var(--text-muted)}
+
+/* MENU ATAS */
+.topnav{display:flex;gap:8px;padding:10px 14px;border-bottom:1px solid var(--glass-border);background:rgba(0,10,30,.15);overflow-x:auto;flex-shrink:0;scrollbar-width:none}
+.topnav::-webkit-scrollbar{display:none}
+.nav-item{padding:9px 18px;border-radius:999px;cursor:pointer;font-size:13px;font-weight:500;color:var(--text-muted);transition:all .3s;border:1px solid var(--glass-border);white-space:nowrap;flex-shrink:0;display:flex;align-items:center;gap:7px}
+.nav-item:hover{color:var(--text-main);background:rgba(0,240,255,.1)}
+.nav-item.active{background:linear-gradient(90deg,rgba(0,191,255,.8),rgba(0,240,255,.8));color:#000;font-weight:700;border-color:var(--neon-blue);box-shadow:0 0 10px var(--neon-blue-glow)}
+
+.main-content{display:flex;flex:1;overflow:hidden}
+.content-area{flex:1;padding:15px;display:flex;flex-direction:column;overflow:hidden}
+.tab-pane{display:none;flex-direction:column;gap:12px;height:100%;overflow-y:auto;animation:fadeIn .3s}
+.tab-pane.active{display:flex}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+
+/* HOME */
+.hero{text-align:center;padding:22px 12px 18px;border:1px solid var(--glass-border);border-radius:12px;background:radial-gradient(circle at 50% 0%,rgba(0,240,255,.18),transparent 70%),var(--card-bg);position:relative;flex-shrink:0}
+.hero::before{content:'';position:absolute;top:0;left:0;width:100%;height:2px;background:var(--neon-blue);box-shadow:0 0 10px var(--neon-blue)}
+.hero-badge{display:inline-block;font-size:10px;letter-spacing:2px;color:var(--neon-blue);border:1px solid var(--neon-blue);border-radius:999px;padding:3px 12px;margin-bottom:12px;background:rgba(0,240,255,.08)}
+.hero-welcome{font-family:'Rajdhani',sans-serif;font-size:16px;letter-spacing:6px;color:var(--text-muted)}
+.hero h2{font-family:'Orbitron',sans-serif;font-size:clamp(22px,5vw,38px);font-weight:900;letter-spacing:3px;margin:4px 0 10px;text-shadow:0 0 12px var(--neon-blue),0 0 28px var(--neon-blue-glow)}
+.hero h2 span{color:var(--neon-blue)}
+.hero p{font-size:12px;line-height:1.6;color:var(--text-muted);max-width:620px;margin:0 auto}
+.hero-cta{margin-top:14px;display:inline-flex;align-items:center;gap:8px;background:linear-gradient(90deg,#0050ff,var(--neon-blue));color:#000;font-weight:700;font-size:13px;border:none;border-radius:8px;padding:10px 22px;cursor:pointer;box-shadow:0 0 15px var(--neon-blue-glow);transition:transform .2s}
+.hero-cta:hover{transform:translateY(-2px)}
+.home-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px;flex-shrink:0}
+.stat-card{background:var(--card-bg);border:1px solid var(--glass-border);border-radius:10px;padding:10px;text-align:center}
+.stat-card i{color:var(--neon-blue);font-size:15px;margin-bottom:4px}
+.stat-card .num{font-family:'Orbitron',sans-serif;font-size:18px;font-weight:700}
+.stat-card .lbl{font-size:10px;color:var(--text-muted);letter-spacing:1px}
+.section-title{font-family:'Rajdhani',sans-serif;font-size:14px;letter-spacing:2px;color:var(--neon-blue);display:flex;align-items:center;gap:8px;flex-shrink:0}
+.section-title::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,var(--glass-border),transparent)}
+.quick-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;flex-shrink:0}
+.quick-card{background:var(--card-bg);border:1px solid var(--glass-border);border-radius:10px;padding:12px;cursor:pointer;transition:all .3s}
+.quick-card:hover{border-color:var(--neon-blue);box-shadow:0 0 12px var(--neon-blue-glow);transform:translateY(-2px)}
+.quick-card .qh{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;margin-bottom:5px}
+.quick-card .qh i{color:var(--neon-blue)}
+.quick-card p{font-size:11px;color:var(--text-muted);line-height:1.4}
+.tips{background:rgba(0,240,255,.05);border:1px solid var(--glass-border);border-left:3px solid var(--neon-blue);border-radius:8px;padding:10px 15px;flex-shrink:0}
+.tips ul{list-style:none;display:flex;flex-direction:column;gap:6px}
+.tips li{font-size:11px;color:var(--text-muted);line-height:1.4;display:flex;gap:8px}
+.tips li i{color:var(--neon-blue);margin-top:2px}
+
+/* MONITORING */
+.monitoring-panel{display:flex;gap:12px;width:100%;flex-shrink:0}
+.monitor-card{flex:1;background:var(--card-bg);backdrop-filter:blur(4px);border:1px solid var(--glass-border);border-radius:10px;padding:10px;text-align:center;position:relative}
+.monitor-card::before{content:'';position:absolute;top:0;left:0;width:100%;height:2px;background:var(--neon-blue);box-shadow:0 0 8px var(--neon-blue)}
+.monitor-card .label{font-size:11px;color:var(--text-muted);letter-spacing:1px;margin-bottom:2px}
+.monitor-card .value{font-family:'Rajdhani',sans-serif;font-size:22px;font-weight:700}
+.status-panel{background:rgba(0,240,255,.05);border:1px solid var(--glass-border);border-left:3px solid var(--neon-blue);border-radius:8px;padding:10px 15px;flex-shrink:0}
+.status-panel h3{font-size:14px;margin-bottom:2px;transition:color .3s}
+.status-panel p{font-size:11px;color:var(--text-muted)}
+
+/* FITUR */
+.features-grid{display:flex;gap:12px;flex:1;min-height:0;flex-wrap:wrap}
+.feature-card{flex:1 1 250px;background:var(--card-bg);backdrop-filter:blur(4px);border:1px solid var(--glass-border);border-radius:10px;padding:12px;display:flex;flex-direction:column}
+.feature-content{flex-grow:1}
+.feature-header{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.feature-icon{width:28px;height:28px;background:rgba(0,240,255,.1);border-radius:6px;display:flex;justify-content:center;align-items:center;color:var(--neon-blue);font-size:14px}
+.feature-title{font-size:13px;font-weight:600}
+.feature-desc{font-size:11px;color:var(--text-muted);line-height:1.3}
+.feature-action{display:flex;justify-content:space-between;align-items:center;margin-top:auto;padding-top:8px;border-top:1px dashed rgba(0,240,255,.2)}
+.toggle-label{font-size:11px;color:var(--text-muted);font-weight:600}
+.toggle-switch{position:relative;display:inline-block;width:38px;height:20px}
+.toggle-switch input{opacity:0;width:0;height:0}
+.slider{position:absolute;cursor:pointer;inset:0;background:#1a2c42;transition:.4s;border-radius:20px;border:1px solid #2a4c7a}
+.slider:before{position:absolute;content:"";height:14px;width:14px;left:2px;bottom:2px;background:#8bb5d6;transition:.4s;border-radius:50%}
+input:checked+.slider{background:var(--neon-blue);border-color:var(--neon-blue);box-shadow:0 0 8px var(--neon-blue-glow)}
+input:checked+.slider:before{transform:translateX(18px);background:#fff}
+
+.placeholder-content{display:flex;flex-direction:column;justify-content:center;align-items:center;height:100%;color:var(--text-muted);text-align:center;border:1px dashed var(--glass-border);border-radius:10px;background:var(--card-bg)}
+.placeholder-content i{font-size:30px;margin-bottom:10px;color:var(--neon-blue)}
+
+footer{height:50px;display:flex;justify-content:space-between;align-items:center;padding:0 20px;border-top:1px solid var(--glass-border);background:rgba(0,10,30,.2);flex-shrink:0}
+.footer-left{display:flex;align-items:center;gap:10px}
+.status-dot{width:8px;height:8px;background:var(--neon-blue);border-radius:50%;box-shadow:0 0 8px var(--neon-blue);animation:blink 2s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.4}}
+.footer-status{font-size:12px;font-weight:600;letter-spacing:1px}
+.footer-credit{font-size:10px;color:var(--text-muted)}
+.btn-reset{background:rgba(0,240,255,.1);border:1px solid var(--neon-blue);color:var(--neon-blue);padding:6px 15px;border-radius:6px;cursor:pointer;font-weight:600;font-size:12px;display:flex;align-items:center;gap:6px;transition:all .3s}
+.btn-reset:hover{background:var(--neon-blue);color:#000}
+
+
+/* ================= ANIMASI ================= */
+#loading-screen{overflow:hidden;background:radial-gradient(circle at 50% 40%,#04204a 0%,#020b1a 65%);transition:opacity .6s,visibility .6s,transform .6s}
+#loading-screen.fade-out{transform:scale(1.08)}
+.ld-grid{position:absolute;inset:-50%;background-image:linear-gradient(rgba(0,240,255,.1) 1px,transparent 1px),linear-gradient(90deg,rgba(0,240,255,.1) 1px,transparent 1px);background-size:40px 40px;transform:perspective(500px) rotateX(60deg);-webkit-mask-image:radial-gradient(circle,#000 15%,transparent 65%);mask-image:radial-gradient(circle,#000 15%,transparent 65%);animation:gridMove 2.5s linear infinite}
+@keyframes gridMove{to{background-position:0 40px}}
+.ld-scan{position:absolute;left:0;width:100%;height:120px;background:linear-gradient(transparent,rgba(0,240,255,.14),transparent);animation:scanY 2.4s linear infinite}
+@keyframes scanY{from{top:-120px}to{top:100%}}
+.ld-particles,.bg-particles{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.bg-particles{position:fixed;z-index:-1}
+.ptc{position:absolute;bottom:-10px;border-radius:50%;background:var(--neon-blue);box-shadow:0 0 8px var(--neon-blue);opacity:0;animation:floatUp linear infinite}
+@keyframes floatUp{0%{transform:translateY(0) scale(.6);opacity:0}15%{opacity:.9}100%{transform:translateY(-105vh) scale(1.2);opacity:0}}
+.ld-center{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;width:100%}
+.loader-ring-wrapper{width:140px;height:140px}
+.loader-ring.r2{top:-10%;left:-10%;width:120%;height:120%;border-top-color:#0050ff;border-bottom-color:#0050ff;animation-duration:2.4s;animation-direction:reverse}
+.loader-ring-wrapper::after{content:'';position:absolute;inset:0;border-radius:50%;border:2px solid var(--neon-blue);animation:ripple 1.8s ease-out infinite}
+@keyframes ripple{from{transform:scale(.8);opacity:.8}to{transform:scale(1.7);opacity:0}}
+.loader-icon{font-size:46px;animation:rocketFloat 1.4s ease-in-out infinite alternate}
+@keyframes rocketFloat{from{transform:translateY(4px) rotate(-8deg)}to{transform:translateY(-4px) rotate(8deg)}}
+.glitch{position:relative}
+.glitch::before,.glitch::after{content:attr(data-text);position:absolute;left:0;top:0;width:100%;mix-blend-mode:screen}
+.glitch::before{color:#ff2d6f;clip-path:inset(0 0 55% 0);animation:glitch1 2.2s infinite}
+.glitch::after{color:#00c8ff;clip-path:inset(55% 0 0 0);animation:glitch2 2.2s infinite}
+@keyframes glitch1{0%,88%,100%{transform:translate(0)}91%{transform:translate(-4px,1px)}95%{transform:translate(4px,-1px)}}
+@keyframes glitch2{0%,86%,100%{transform:translate(0)}90%{transform:translate(4px,1px)}94%{transform:translate(-4px,-1px)}}
+.loader-subtitle{min-height:16px}
+#loader-status::after{content:'_';animation:blink 1s infinite}
+.loader-progress-fill{position:relative;overflow:hidden}
+.loader-progress-fill::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.7),transparent);animation:shine 1s linear infinite}
+@keyframes shine{from{transform:translateX(-100%)}to{transform:translateX(100%)}}
+
+.bg-container{animation:kenburns 25s ease-in-out infinite alternate}
+@keyframes kenburns{from{transform:scale(1)}to{transform:scale(1.12)}}
+.dashboard{transform:scale(.96) translateY(14px);transition:opacity .8s,transform .9s cubic-bezier(.2,.9,.3,1.2)}
+.show-dashboard{transform:none;animation:borderGlow 3s ease-in-out infinite .9s}
+@keyframes borderGlow{0%,100%{box-shadow:0 0 20px var(--neon-blue-glow)}50%{box-shadow:0 0 38px rgba(0,240,255,.55),inset 0 0 18px rgba(0,240,255,.08)}}
+
+header{position:relative;overflow:hidden}
+header::after{content:'';position:absolute;bottom:0;left:0;height:2px;width:30%;background:linear-gradient(90deg,transparent,var(--neon-blue),transparent);animation:slideLine 3s linear infinite}
+@keyframes slideLine{from{transform:translateX(-100%)}to{transform:translateX(400%)}}
+.brand-icon{animation:rocketFloat 2s ease-in-out infinite alternate}
+
+.nav-item{animation:navIn .5s ease backwards}
+.nav-item:nth-child(1){animation-delay:.9s}.nav-item:nth-child(2){animation-delay:1s}.nav-item:nth-child(3){animation-delay:1.1s}.nav-item:nth-child(4){animation-delay:1.2s}.nav-item:nth-child(5){animation-delay:1.3s}.nav-item:nth-child(6){animation-delay:1.4s}.nav-item:nth-child(7){animation-delay:1.5s}
+@keyframes navIn{from{opacity:0;transform:translateY(-14px)}}
+.nav-item:hover{transform:translateY(-2px)}
+.nav-item.active{animation:navPulse 2s ease-in-out infinite}
+@keyframes navPulse{0%,100%{box-shadow:0 0 10px var(--neon-blue-glow)}50%{box-shadow:0 0 22px rgba(0,240,255,.7)}}
+.nav-item:active,.btn-reset:active,.hero-cta:active{transform:scale(.94)}
+
+.tab-pane>*:not(.features-grid),.features-grid>*{animation:riseIn .55s cubic-bezier(.2,.8,.3,1) backwards}
+@keyframes riseIn{from{opacity:0;transform:translateY(18px) scale(.97)}}
+.tab-pane>*:nth-child(2){animation-delay:.07s}.tab-pane>*:nth-child(3){animation-delay:.14s}.tab-pane>*:nth-child(4){animation-delay:.21s}.tab-pane>*:nth-child(5){animation-delay:.28s}.tab-pane>*:nth-child(6){animation-delay:.35s}.tab-pane>*:nth-child(7){animation-delay:.42s}.tab-pane>*:nth-child(8){animation-delay:.49s}
+.features-grid>*:nth-child(2){animation-delay:.1s}.features-grid>*:nth-child(3){animation-delay:.2s}.features-grid>*:nth-child(4){animation-delay:.3s}
+
+.hero{overflow:hidden}
+.hero::after{content:'';position:absolute;top:0;left:-60%;width:40%;height:100%;background:linear-gradient(100deg,transparent,rgba(0,240,255,.14),transparent);transform:skewX(-20deg);animation:heroShine 4s ease-in-out infinite}
+@keyframes heroShine{0%{left:-60%}60%,100%{left:140%}}
+.hero h2{animation:titleGlow 2.5s ease-in-out infinite alternate}
+@keyframes titleGlow{from{text-shadow:0 0 12px var(--neon-blue),0 0 28px var(--neon-blue-glow)}to{text-shadow:0 0 22px var(--neon-blue),0 0 55px rgba(0,240,255,.6)}}
+.hero-badge{animation:badgeFloat 3s ease-in-out infinite}
+@keyframes badgeFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+.hero-welcome{animation:spacing 1.4s ease backwards .3s}
+@keyframes spacing{from{letter-spacing:1px;opacity:.3}to{letter-spacing:6px;opacity:1}}
+.hero-cta{animation:ctaPulse 2s infinite}
+@keyframes ctaPulse{0%{box-shadow:0 0 0 0 rgba(0,240,255,.5)}70%,100%{box-shadow:0 0 0 14px rgba(0,240,255,0)}}
+
+.stat-card{animation:floaty 3.5s ease-in-out infinite;transition:box-shadow .3s,border-color .3s}
+.stat-card:nth-child(2){animation-delay:-.6s}.stat-card:nth-child(3){animation-delay:-1.2s}.stat-card:nth-child(4){animation-delay:-1.8s}
+.stat-card:hover{border-color:var(--neon-blue);box-shadow:0 0 14px var(--neon-blue-glow)}
+@keyframes floaty{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+.stat-card i,.section-title i{animation:iconPop 2s ease-in-out infinite}
+@keyframes iconPop{0%,100%{transform:scale(1)}50%{transform:scale(1.25)}}
+.section-title::after{transform-origin:left;animation:growLine 1s ease backwards .3s}
+@keyframes growLine{from{transform:scaleX(0)}}
+.quick-card .qh i{transition:transform .3s}
+.quick-card:hover .qh i{transform:rotate(-15deg) scale(1.3)}
+.tips li{animation:slideIn .5s ease backwards}
+.tips li:nth-child(1){animation-delay:.5s}.tips li:nth-child(2){animation-delay:.65s}.tips li:nth-child(3){animation-delay:.8s}
+@keyframes slideIn{from{opacity:0;transform:translateX(-14px)}}
+
+.monitor-card::before{animation:barGlow 2s ease-in-out infinite}
+@keyframes barGlow{0%,100%{opacity:.5}50%{opacity:1}}
+.feature-card{transition:transform .3s,box-shadow .3s,border-color .3s}
+.feature-card:hover{transform:translateY(-4px);border-color:var(--neon-blue);box-shadow:0 6px 18px var(--neon-blue-glow)}
+.feature-icon{transition:transform .3s;animation:iconGlow 2.5s ease-in-out infinite}
+.feature-card:hover .feature-icon{transform:rotate(-10deg) scale(1.15)}
+@keyframes iconGlow{0%,100%{box-shadow:0 0 0 rgba(0,240,255,0)}50%{box-shadow:0 0 12px rgba(0,240,255,.5)}}
+.slider:before{transition:.4s cubic-bezier(.3,1.6,.5,1)}
+input:checked+.slider{animation:togglePop .4s}
+@keyframes togglePop{50%{transform:scale(1.12)}}
+.placeholder-content i{animation:rocketFloat 2s ease-in-out infinite alternate}
+.btn-reset i{transition:transform .4s}
+.btn-reset:hover i{transform:rotate(180deg)}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+
+/* ================= SMOOTH + GERBANG ================= */
+:root{--ease:cubic-bezier(.22,1,.36,1)}
+*{-webkit-tap-highlight-color:transparent}
+#loading-screen{background:transparent;transition:none}
+.gate-door{position:absolute;top:0;width:50%;height:100%;z-index:0;will-change:transform;transition:transform 1.5s cubic-bezier(.77,0,.18,1);background-image:radial-gradient(circle at 50% 40%,#04204a 0%,#020b1a 65%);background-size:200% 100%;background-repeat:no-repeat}
+.gate-l{left:0;background-position:0 0;border-right:2px solid var(--neon-blue);box-shadow:0 0 30px var(--neon-blue-glow)}
+.gate-r{right:0;background-position:100% 0;border-left:2px solid var(--neon-blue);box-shadow:0 0 30px var(--neon-blue-glow)}
+.gate-door::before{content:'';position:absolute;top:50%;width:55%;height:2px;opacity:.7}
+.gate-l::before{right:0;background:linear-gradient(90deg,transparent,var(--neon-blue))}
+.gate-r::before{left:0;background:linear-gradient(270deg,transparent,var(--neon-blue))}
+.gate-seam{position:absolute;left:50%;top:0;width:3px;height:100%;margin-left:-1.5px;background:#fff;box-shadow:0 0 25px 6px var(--neon-blue);opacity:0;z-index:3;pointer-events:none;transition:opacity .5s ease}
+.ld-grid,.ld-scan,.ld-particles{z-index:1;transition:opacity .6s ease}
+.ld-center{transition:opacity .6s ease,transform .9s var(--ease),filter .6s ease}
+#loading-screen.opening .ld-grid,#loading-screen.opening .ld-scan,#loading-screen.opening .ld-particles{opacity:0}
+#loading-screen.opening .ld-center{opacity:0;transform:scale(1.2);filter:blur(6px)}
+#loading-screen.opening .gate-seam{opacity:1}
+#loading-screen.open{pointer-events:none}
+#loading-screen.open .gate-l{transform:translateX(-101%)}
+#loading-screen.open .gate-r{transform:translateX(101%)}
+#loading-screen.open .gate-seam{opacity:0;transition:opacity .35s ease}
+.loader-progress-fill{transition:none}
+
+.dashboard{transition:opacity 1.2s var(--ease),transform 1.6s var(--ease)}
+.show-dashboard{animation:none}
+.dashboard::after{content:'';position:absolute;inset:0;border-radius:13px;pointer-events:none;box-shadow:inset 0 0 30px rgba(0,240,255,.35);opacity:.15;animation:glowFade 4s ease-in-out infinite}
+@keyframes glowFade{50%{opacity:.9}}
+.bg-container{will-change:transform;animation-duration:30s}
+.ptc{will-change:transform,opacity}
+.feature-card,.monitor-card{backdrop-filter:none;-webkit-backdrop-filter:none}
+
+.nav-item{transition:color .3s,background .3s,border-color .3s,box-shadow .3s,transform .45s var(--ease)}
+.nav-item.active{animation-duration:3s}
+.tab-pane{animation-duration:.5s}
+.tab-pane>*:not(.features-grid),.features-grid>*{animation-duration:.9s;animation-timing-function:var(--ease)}
+@keyframes riseIn{from{opacity:0;transform:translateY(26px) scale(.98)}}
+@keyframes navIn{from{opacity:0;transform:translateY(-16px)}}
+@keyframes slideIn{from{opacity:0;transform:translateX(-18px)}}
+.tips li{animation-duration:.8s;animation-timing-function:var(--ease)}
+.quick-card,.feature-card,.stat-card{transition:transform .5s var(--ease),box-shadow .4s ease,border-color .4s ease}
+.feature-icon,.quick-card .qh i{transition:transform .5s var(--ease)}
+.slider{transition:background-color .35s ease,border-color .35s ease,box-shadow .35s ease}
+.slider:before{transition:transform .45s var(--ease),background-color .3s ease}
+input:checked+.slider{animation-duration:.5s;animation-timing-function:var(--ease)}
+.stat-card{animation-duration:5s}
+.hero h2{animation-duration:3.5s}
+.hero-badge{animation-duration:4s}
+.hero-cta{animation-duration:2.6s;transition:transform .4s var(--ease)}
+.hero::after{animation-duration:5s}
+.loader-icon{animation-duration:2s}
+.brand-icon{animation-duration:3s}
+.btn-reset i{transition:transform .6s var(--ease)}
+
+/* ===== GERBANG: tanpa garis di awal, garis baru muncul saat terbuka ===== */
+.gate-l,.gate-r{border-color:transparent;box-shadow:none;transition:transform 1.9s cubic-bezier(.65,0,.35,1),border-color .9s ease,box-shadow .9s ease}
+.gate-door::before{opacity:0;transition:opacity .9s ease}
+#loading-screen.opening .gate-l,#loading-screen.opening .gate-r{border-color:var(--neon-blue);box-shadow:0 0 30px var(--neon-blue-glow)}
+#loading-screen.opening .gate-door::before{opacity:.7}
+.gate-seam{transition:opacity .9s ease}
+#loading-screen.open .gate-l{transform:translate3d(-101%,0,0)}
+#loading-screen.open .gate-r{transform:translate3d(101%,0,0)}
+#loading-screen.open .gate-seam{transition:opacity .6s ease}
+
+/* ================= LOADING V3: ringan, tampilan tetap saat gerbang terbuka ================= */
+.gate-door{position:absolute;inset:0;width:100%;height:100%;border:0;box-shadow:none;overflow:hidden;background-image:radial-gradient(circle at 50% 40%,#04204a 0%,#020b1a 65%);background-size:100% 100%;background-position:0 0;will-change:transform;transition:transform 1.9s cubic-bezier(.65,0,.35,1)}
+.gate-l,.gate-r{left:0;right:auto;border:0;box-shadow:none;background-position:0 0}
+.gate-l{clip-path:inset(0 calc(50% - 1px) 0 0)}
+.gate-r{clip-path:inset(0 0 0 calc(50% - 1px))}
+.gate-door::before{display:none}
+.gate-door::after{content:'';position:absolute;top:0;bottom:0;width:2px;background:var(--neon-blue);box-shadow:0 0 18px 3px var(--neon-blue);opacity:0;transition:opacity .9s ease}
+.gate-l::after{left:calc(50% - 3px)}
+.gate-r::after{left:50%}
+.gate-seam{display:none}
+.ld-scene{position:absolute;inset:0;display:flex;justify-content:center;align-items:center}
+.ld-scene::before{content:'';position:absolute;inset:0;z-index:2;pointer-events:none;background:radial-gradient(circle at 50% 45%,transparent 15%,#020b1a 90%)}
+.ld-center{z-index:3}
+.ld-grid{inset:-40px 0 0 0;transform:none;-webkit-mask-image:none;mask-image:none;opacity:.55;will-change:transform;animation:gridSlide 1.6s linear infinite}
+@keyframes gridSlide{from{transform:translateY(0)}to{transform:translateY(40px)}}
+.ld-scan{top:0;will-change:transform;animation:scanMove 2.6s linear infinite}
+@keyframes scanMove{from{transform:translateY(-130px)}to{transform:translateY(100vh)}}
+.glitch::before,.glitch::after{mix-blend-mode:normal}
+.loader-icon{filter:none;text-shadow:0 0 14px var(--neon-blue)}
+.loader-progress-fill{width:100%;transform:scaleX(0);transform-origin:left;will-change:transform;transition:none}
+.loader-progress-fill::after{display:none}
+.js-status::after{content:'_';animation:blink 1s infinite}
+/* saat opening: tampilan loading TIDAK berubah, hanya garis tepi gerbang yang menyala */
+#loading-screen.opening .ld-grid{opacity:.55}
+#loading-screen.opening .ld-scan,#loading-screen.opening .ld-particles{opacity:1}
+#loading-screen.opening .ld-center{opacity:1;transform:none;filter:none}
+#loading-screen.opening .gate-l,#loading-screen.opening .gate-r{border:0;box-shadow:none}
+#loading-screen.opening .gate-door::after{opacity:1}
+#loading-screen.open .gate-l{transform:translate3d(-50%,0,0)}
+#loading-screen.open .gate-r{transform:translate3d(50%,0,0)}
+/* background & animasi dashboard baru jalan setelah loading selesai */
+.bg-container,.bg-overlay,.bg-particles{transition:opacity 1.4s ease}
+body:not(.ready) .bg-container{opacity:0;animation-play-state:paused}
+body:not(.ready) .bg-overlay,body:not(.ready) .bg-particles{opacity:0}
+.dashboard:not(.show-dashboard),.dashboard:not(.show-dashboard) *,.dashboard:not(.show-dashboard) *::before,.dashboard:not(.show-dashboard) *::after,.dashboard:not(.show-dashboard)::after{animation-play-state:paused!important}
+
+/* ===== FOTO HOME ===== */
+.hero-photo{position:relative;width:130px;height:130px;margin:0 auto 20px;animation:photoFloat 4.5s ease-in-out infinite}
+@keyframes photoFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+.hp-glow{position:absolute;inset:-22px;border-radius:50%;background:radial-gradient(circle,rgba(0,240,255,.5),transparent 70%);animation:glowBreath 3.2s ease-in-out infinite}
+@keyframes glowBreath{0%,100%{opacity:.45;transform:scale(.92)}50%{opacity:1;transform:scale(1.08)}}
+.hp-ring{position:absolute;inset:-5px;border-radius:50%;background:conic-gradient(from 0deg,var(--neon-blue),#0050ff,transparent 55%,var(--neon-blue));will-change:transform;animation:spin 4s linear infinite}
+.hp-frame{position:absolute;inset:0;border-radius:50%;overflow:hidden;border:3px solid #020b1a;background:#020b1a;animation:photoIn 1.2s var(--ease) backwards .25s}
+@keyframes photoIn{from{opacity:0;transform:scale(.55) rotate(-12deg)}}
+.hp-frame img{width:100%;height:100%;object-fit:cover;display:block;will-change:transform;animation:photoZoom 9s ease-in-out infinite alternate}
+@keyframes photoZoom{from{transform:scale(1)}to{transform:scale(1.12)}}
+.hp-frame::after{content:'';position:absolute;top:0;left:-70%;width:45%;height:100%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.35),transparent);transform:skewX(-20deg);animation:photoShine 5s ease-in-out infinite 1s}
+@keyframes photoShine{0%{left:-70%}45%,100%{left:150%}}
+.hp-orbit{position:absolute;inset:-18px;animation:spin 7s linear infinite;will-change:transform}
+.hp-orbit.rev{inset:-30px;animation-duration:11s;animation-direction:reverse}
+.hp-orbit span{position:absolute;top:0;left:50%;width:8px;height:8px;margin-left:-4px;border-radius:50%;background:var(--neon-blue);box-shadow:0 0 10px 2px var(--neon-blue)}
+.hp-orbit.rev span{width:5px;height:5px;margin-left:-2.5px;background:#7fb2ff;box-shadow:0 0 8px 2px #0050ff}
+
+/* ===== KARAKTER HOME: tanpa frame/background ===== */
+.hero-photo{width:auto;height:auto;display:flex;justify-content:center;margin:0 auto 12px}
+.hp-img{height:clamp(150px,28vh,210px);width:auto;max-width:100%;object-fit:contain;display:block;background:none;border:0;filter:drop-shadow(0 0 14px rgba(0,240,255,.55));transform-origin:50% 100%;will-change:transform;animation:charIn 1.2s var(--ease) backwards .25s,charSway 6s ease-in-out infinite 1.5s}
+@keyframes charIn{from{opacity:0;transform:translateY(30px) scale(.8)}}
+@keyframes charSway{0%,100%{transform:rotate(-1.5deg) scale(1)}50%{transform:rotate(1.5deg) scale(1.03)}}
+
+/* ===== PERINTAH SUARA ===== */
+.mic-btn{margin-left:auto;width:38px;height:38px;border-radius:50%;border:1px solid var(--neon-blue);background:rgba(0,240,255,.1);color:var(--neon-blue);font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;position:relative;transition:transform .4s var(--ease),background .3s,color .3s}
+.mic-btn:active{transform:scale(.9)}
+.mic-btn.listening{background:var(--neon-blue);color:#000;animation:micPulse 1.2s ease-out infinite}
+@keyframes micPulse{0%{box-shadow:0 0 0 0 rgba(0,240,255,.6)}100%{box-shadow:0 0 0 16px rgba(0,240,255,0)}}
+#voice-toast{position:fixed;left:50%;bottom:70px;transform:translate(-50%,20px);max-width:88vw;padding:10px 18px;border-radius:999px;background:rgba(0,10,30,.92);border:1px solid var(--neon-blue);color:#fff;font-size:12px;font-weight:600;text-align:center;box-shadow:0 0 18px var(--neon-blue-glow);opacity:0;pointer-events:none;z-index:100000;transition:opacity .4s ease,transform .5s var(--ease)}
+#voice-toast.show{opacity:1;transform:translate(-50%,0)}
+#voice-toast.err{border-color:#ff4444;box-shadow:0 0 18px rgba(255,68,68,.4)}
+
+
+/* ================= LAYOUT 16:9 (landscape) ================= */
+header{height:auto;min-height:56px;flex-wrap:wrap;gap:6px 10px;padding:8px 14px}
+.topnav{order:3;width:100%;border:0;background:none;padding:6px 0 2px}
+.mic-btn{order:2}
+@media (min-aspect-ratio:4/3){
+  .dashboard{width:min(98vw,calc(96vh*16/9));height:min(96vh,calc(98vw*9/16));max-width:none}
+  header{flex-wrap:nowrap;min-height:0;height:48px;padding:0 12px;gap:10px}
+  .brand-text h1{font-size:16px}
+  .brand-text p{font-size:10px}
+  .brand-icon{font-size:18px}
+  .topnav{order:1;flex:1;width:auto;justify-content:center;padding:0 4px}
+  .nav-item{padding:6px 13px;font-size:12px}
+  .mic-btn{margin-left:0;width:34px;height:34px}
+  footer{height:38px;padding:0 14px}
+  .footer-credit{font-size:9px}
+  .btn-reset{padding:4px 12px}
+  .content-area{padding:10px}
+  .tab-pane{gap:10px}
+  .monitor-card .value{font-size:20px}
+  #home.tab-pane.active{display:grid;grid-template-columns:40% 1fr;grid-auto-rows:min-content;column-gap:12px;row-gap:8px;align-content:start}
+  #home .hero{grid-column:1;grid-row:1/7;align-self:stretch;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:12px 10px}
+  #home .hero p{font-size:11px;line-height:1.5}
+  #home .hero h2{font-size:clamp(18px,3vw,32px);margin:2px 0 6px}
+  #home .hero-badge{margin-bottom:6px}
+  #home .hero-cta{margin-top:10px;padding:8px 18px}
+  #home .hero-photo{margin-bottom:6px}
+  .hp-img{height:clamp(80px,22vh,190px)}
+  #home .home-stats,#home .section-title,#home .quick-grid,#home .tips{grid-column:2}
+  #home .home-stats{grid-template-columns:repeat(4,1fr);gap:8px}
+  .stat-card{padding:6px}
+  .stat-card .num{font-size:15px}
+  #home .quick-grid{grid-template-columns:repeat(2,1fr);gap:8px}
+  .quick-card{padding:8px 10px}
+  .quick-card p{font-size:10px}
+  #home .tips{padding:8px 12px}
+  #home .tips ul{gap:4px}
+  #home .tips li{font-size:10px}
+  .features-grid{gap:10px}
+  .feature-card{flex:1 1 200px;padding:10px}
+}
+
+/* ================= PERBAIKAN LAYOUT LANDSCAPE (layar lebar & pendek) ================= */
+body{height:100vh;height:100dvh}
+.dashboard{height:94vh;height:94dvh}
+.brand{flex-shrink:0}
+.topnav{min-width:0}
+@media (min-aspect-ratio:4/3){
+  .dashboard{width:98vw;height:96vh;height:96dvh;max-width:none}
+  .topnav{justify-content:flex-start}
+  .topnav .nav-item:first-child{margin-left:auto}
+  .topnav .nav-item:last-child{margin-right:auto}
+  .nav-item{padding:6px 11px;font-size:11.5px}
+}
+@media (min-aspect-ratio:4/3) and (max-height:480px){
+  header{height:42px;padding:0 10px;gap:8px}
+  .brand-text h1{font-size:14px}
+  .brand-text p{display:none}
+  .nav-item{padding:5px 10px;font-size:11px}
+  .mic-btn{width:30px;height:30px;font-size:13px}
+  footer{height:32px;padding:0 12px}
+  .footer-status{font-size:10px}
+  .footer-credit{display:none}
+  .content-area{padding:8px}
+  .tab-pane{gap:8px}
+
+  #home.tab-pane.active{grid-template-columns:42% 1fr;row-gap:6px}
+  #home .hero{display:grid;grid-template-columns:auto 1fr;column-gap:10px;align-content:center;justify-items:start;text-align:left;padding:8px 10px}
+  #home .hero-photo{grid-column:1;grid-row:1/6;align-self:center;margin:0}
+  #home .hero>:not(.hero-photo){grid-column:2}
+  .hp-img{height:clamp(70px,34vh,130px);height:clamp(70px,34dvh,130px)}
+  #home .hero-badge{font-size:8px;padding:2px 8px;margin-bottom:3px}
+  #home .hero-welcome{font-size:11px;letter-spacing:4px}
+  #home .hero h2{font-size:clamp(15px,2.3vw,24px);letter-spacing:2px;margin:0 0 3px}
+  #home .hero p{margin:0;max-width:none;font-size:9.5px;line-height:1.4}
+  #home .hero-cta{margin-top:6px;padding:6px 14px;font-size:11px}
+  .stat-card i{display:none}
+  .stat-card{padding:4px 6px}
+  .stat-card .num{font-size:13px}
+  .stat-card .lbl{font-size:8px}
+  .section-title{font-size:11px}
+  #home .quick-grid{grid-template-columns:repeat(4,1fr);gap:6px}
+  .quick-card{padding:6px 8px}
+  .quick-card p{display:none}
+  .quick-card .qh{margin-bottom:0;font-size:11px}
+  #home .tips{padding:6px 10px}
+  #home .tips li{font-size:9.5px}
+
+  .monitor-card{padding:5px}
+  .monitor-card .value{font-size:16px}
+  .status-panel{padding:6px 12px}
+  .status-panel h3{font-size:12px}
+  .feature-card{padding:8px}
+  .feature-header{margin-bottom:5px}
+}
+
+/* ================= HOME BAWAH + TOOLS ================= */
+.tab-pane{scrollbar-width:thin;scrollbar-color:rgba(0,240,255,.4) transparent}
+.home-below{display:flex;flex-direction:column;gap:10px;grid-column:1/-1;padding-bottom:6px}
+.reveal{opacity:0;transform:translateY(22px);transition:opacity .7s var(--ease),transform .7s var(--ease)}
+.reveal.in{opacity:1;transform:none}
+.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px}
+.step{display:flex;gap:10px;align-items:flex-start;background:var(--card-bg);border:1px solid var(--glass-border);border-radius:10px;padding:10px}
+.step b{flex-shrink:0;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Orbitron',sans-serif;font-size:12px;color:#000;background:linear-gradient(135deg,#0050ff,var(--neon-blue));box-shadow:0 0 10px var(--neon-blue-glow)}
+.step h4{font-size:12px;margin-bottom:2px}
+.step p{font-size:10.5px;color:var(--text-muted);line-height:1.4}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-size:11px;padding:6px 12px;border-radius:999px;border:1px solid var(--glass-border);background:rgba(0,240,255,.06);color:var(--text-main);cursor:pointer;transition:transform .4s var(--ease),background .3s,border-color .3s}
+.chip:hover{background:rgba(0,240,255,.16);border-color:var(--neon-blue)}
+.chip:active{transform:scale(.94)}
+.faq{display:flex;flex-direction:column;gap:6px}
+.faq details{background:var(--card-bg);border:1px solid var(--glass-border);border-radius:10px;padding:9px 12px}
+.faq summary{cursor:pointer;font-size:12px;font-weight:600;list-style:none;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary::after{content:'+';color:var(--neon-blue);font-size:16px;transition:transform .4s var(--ease)}
+.faq details[open] summary::after{transform:rotate(135deg)}
+.faq details[open]{border-color:var(--neon-blue)}
+.faq p{font-size:11px;color:var(--text-muted);line-height:1.5;margin-top:6px;animation:riseIn .5s var(--ease)}
+.credit-card{text-align:center;padding:14px;border-radius:12px;border:1px solid var(--glass-border);background:radial-gradient(circle at 50% 0%,rgba(0,240,255,.15),transparent 70%),var(--card-bg)}
+.credit-title{font-family:'Orbitron',sans-serif;font-size:14px;font-weight:900;letter-spacing:3px;background:linear-gradient(90deg,#fff,var(--neon-blue),#fff);background-size:200% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:textShine 4s linear infinite}
+@keyframes textShine{to{background-position:-200% 0}}
+.credit-card p{font-size:10.5px;color:var(--text-muted);margin-top:4px}
+.scroll-hint{position:sticky;bottom:0;height:0;width:100%;grid-column:1/-1;pointer-events:none;z-index:5}
+.scroll-hint i{position:absolute;left:50%;bottom:8px;margin-left:-15px;width:30px;height:30px;line-height:30px;text-align:center;border-radius:50%;background:rgba(0,10,30,.85);border:1px solid var(--neon-blue);color:var(--neon-blue);font-size:13px;box-shadow:0 0 12px var(--neon-blue-glow);animation:hintBounce 1.6s ease-in-out infinite;transition:opacity .5s ease}
+@keyframes hintBounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+.scroll-hint.hide i{opacity:0}
+
+#tools .tools-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));flex:none;align-content:start;gap:10px}
+.tool-card{flex:none}
+.tool-rows{display:flex;flex-direction:column}
+.tool-row{display:flex;justify-content:space-between;gap:8px;font-size:11px;padding:3px 0;border-bottom:1px dashed rgba(0,240,255,.12)}
+.tool-row span:first-child{color:var(--text-muted)}
+.tool-big{font-family:'Orbitron',sans-serif;font-size:24px;font-weight:700;color:var(--neon-blue);text-shadow:0 0 12px var(--neon-blue-glow);margin:2px 0 4px}
+.tool-btn{background:rgba(0,240,255,.1);border:1px solid var(--neon-blue);color:var(--neon-blue);padding:5px 12px;border-radius:6px;cursor:pointer;font-weight:600;font-size:11px;display:inline-flex;align-items:center;gap:5px;transition:background .3s,color .3s,transform .4s var(--ease)}
+.tool-btn:hover{background:var(--neon-blue);color:#000}
+.tool-btn:active{transform:scale(.93)}
+.tool-btn:disabled{opacity:.5;pointer-events:none}
+.timer-btns{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
+.touch-pad{height:90px;border:1px dashed var(--neon-blue);border-radius:10px;display:flex;align-items:center;justify-content:center;text-align:center;font-size:11px;color:var(--text-muted);touch-action:none;user-select:none;-webkit-user-select:none;transition:background .3s,box-shadow .3s}
+.touch-pad.active{background:rgba(0,240,255,.12);box-shadow:inset 0 0 20px var(--neon-blue-glow);color:#fff;font-size:15px;font-weight:700}
+
+/* ===== MENU ATAS RATA KIRI ===== */
+.topnav{justify-content:flex-start}
+.topnav .nav-item:first-child,.topnav .nav-item:last-child{margin-left:0;margin-right:0}
+.nav-item:nth-child(8){animation-delay:1.6s}
+
+/* ===== BUBBLE "HAIII" DI ATAS KEPALA KARAKTER (siklus 8 dtk: hilang 3, muncul 5) ===== */
+.hero-photo{position:relative;padding-top:28px}
+.say-wrap{position:absolute;left:0;right:0;top:0;display:flex;justify-content:center;pointer-events:none;z-index:3}
+.say{position:relative;padding:5px 15px;border-radius:14px;background:linear-gradient(135deg,#0050ff,var(--neon-blue));color:#000;font-family:'Orbitron',sans-serif;font-weight:900;font-size:13px;letter-spacing:2px;box-shadow:0 0 16px var(--neon-blue-glow);transform-origin:50% 100%;opacity:0;will-change:transform,opacity;animation:sayCycle 8s ease-in-out infinite}
+.say::after{content:'';position:absolute;left:50%;bottom:-6px;margin-left:-6px;border:6px solid transparent;border-top-color:var(--neon-blue);border-bottom:0}
+@keyframes sayCycle{
+  0%,37.5%{opacity:0;transform:translateY(12px) scale(.5)}
+  43%{opacity:1;transform:translateY(-5px) scale(1.12)}
+  47%{opacity:1;transform:translateY(0) scale(1)}
+  55%{transform:translateY(-2px) rotate(-3deg)}
+  63%{transform:translateY(0) rotate(3deg)}
+  71%,90%{opacity:1;transform:translateY(0) rotate(0) scale(1)}
+  100%{opacity:0;transform:translateY(-10px) scale(.7)}
+}
+
+/* ================= MUSIC ================= */
+
+/* ================= MUSIC ================= */
+.mp-switch{display:flex;gap:8px;flex-shrink:0}
+.mp-tab{flex:1;max-width:200px;padding:8px 12px;border-radius:999px;border:1px solid var(--glass-border);background:rgba(0,240,255,.05);color:var(--text-muted);font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;transition:all .4s var(--ease)}
+.mp-tab.active{background:linear-gradient(90deg,rgba(0,191,255,.8),rgba(0,240,255,.8));color:#000;border-color:var(--neon-blue);box-shadow:0 0 12px var(--neon-blue-glow)}
+.mp-panel{display:none}
+.mp-panel.active{display:block;animation:riseIn .6s var(--ease)}
+.mp-grid{display:grid;grid-template-columns:1fr;gap:12px}
+@media (min-aspect-ratio:4/3){.mp-grid{grid-template-columns:1fr 1fr}}
+.mp-left,.mp-right{display:flex;flex-direction:column;gap:8px;min-width:0}
+.mp-now{display:flex;gap:12px;align-items:center;background:var(--card-bg);border:1px solid var(--glass-border);border-radius:12px;padding:10px}
+.mp-art{position:relative;width:64px;height:64px;flex-shrink:0;border-radius:10px;overflow:hidden;background:rgba(0,240,255,.1);display:flex;align-items:center;justify-content:center;color:var(--neon-blue);font-size:22px}
+.mp-art img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.eq{position:absolute;inset:auto 0 0 0;height:24px;display:none;align-items:flex-end;justify-content:center;gap:3px;padding-bottom:4px;background:linear-gradient(transparent,rgba(0,0,0,.6))}
+.eq span{width:4px;height:100%;background:var(--neon-blue);border-radius:2px;transform-origin:bottom;animation:eqBar .9s ease-in-out infinite}
+.eq span:nth-child(2){animation-delay:-.3s}.eq span:nth-child(3){animation-delay:-.6s}.eq span:nth-child(4){animation-delay:-.15s}
+@keyframes eqBar{0%,100%{transform:scaleY(.25)}50%{transform:scaleY(1)}}
+.mp-now.playing .eq{display:flex}
+.mp-now.playing{border-color:var(--neon-blue);box-shadow:0 0 14px var(--neon-blue-glow)}
+.mp-meta{min-width:0;flex:1}
+.mp-title{font-size:14px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mp-artist{font-size:11px;color:var(--text-muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mp-seek,.mp-vol{display:flex;align-items:center;gap:8px;font-size:10px;color:var(--text-muted)}
+.mp-seek input,.mp-vol input{flex:1;min-width:0;accent-color:var(--neon-blue);height:4px}
+.mp-vol i{color:var(--neon-blue);width:18px;cursor:pointer;font-size:14px}
+.mp-vol span{width:22px;text-align:right}
+.mp-ctrl{display:flex;align-items:center;justify-content:center;gap:14px}
+.ib{width:34px;height:34px;border-radius:50%;border:1px solid var(--glass-border);background:rgba(0,240,255,.06);color:var(--text-main);font-size:13px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;transition:transform .4s var(--ease),background .3s,color .3s,border-color .3s}
+.ib:hover{border-color:var(--neon-blue);color:var(--neon-blue)}
+.ib:active{transform:scale(.88)}
+.ib.big{width:40px;height:40px;font-size:15px}
+.ib.play{width:52px;height:52px;font-size:19px;background:linear-gradient(135deg,#0050ff,var(--neon-blue));color:#000;border:0;box-shadow:0 0 16px var(--neon-blue-glow)}
+.ib.on{color:var(--neon-blue);border-color:var(--neon-blue);background:rgba(0,240,255,.16)}
+.mp-qt{justify-content:space-between}
+.mp-qt::after{display:none}
+.mp-queue,.mp-results{display:flex;flex-direction:column;gap:6px}
+.mp-row{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:10px;border:1px solid var(--glass-border);background:var(--card-bg);animation:riseIn .45s var(--ease) backwards}
+.mp-row.cur{border-color:var(--neon-blue);box-shadow:0 0 10px var(--neon-blue-glow)}
+.mp-row img{width:38px;height:38px;border-radius:6px;object-fit:cover;flex-shrink:0}
+.mp-row .info{flex:1;min-width:0;cursor:pointer}
+.mp-row .t{font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mp-row .a{font-size:10px;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mp-row .ib{width:28px;height:28px;font-size:11px}
+.mp-empty{text-align:center;font-size:11px;color:var(--text-muted);padding:14px;border:1px dashed var(--glass-border);border-radius:10px}
+.mp-search{display:flex;align-items:center;gap:8px;background:var(--card-bg);border:1px solid var(--glass-border);border-radius:999px;padding:5px 6px 5px 14px}
+.mp-search i{color:var(--neon-blue);font-size:13px}
+.mp-search input{flex:1;min-width:0;background:none;border:0;outline:none;color:#fff;font-size:13px}
+.mp-note{font-size:10px;color:var(--text-muted);text-align:center}
+.playlist-card{background:var(--card-bg);border:1px solid var(--glass-border);border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:10px}
+.playlist-head{display:flex;align-items:center;gap:10px}
+.playlist-head-icon{width:40px;height:40px;border-radius:10px;background:#1db954;color:#000;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.playlist-head-title{font-size:14px;font-weight:700}
+.playlist-head-sub{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text-muted);margin-top:2px}
+.dot{width:6px;height:6px;border-radius:50%;background:#1db954;box-shadow:0 0 6px #1db954}
+.playlist-embed{width:100%;border:0;border-radius:12px}
+
+.sp-actions{display:flex;gap:8px;flex-wrap:wrap}
+.sp-actions a{text-decoration:none}
+/* Embed Spotify sering blank di dalam panel kaca (backdrop-filter) + animasi berat, jadi dimatikan saat tab Spotify terbuka */
+body:has(#music.active #mp-spotify.active.sp-embed-on) .dashboard{backdrop-filter:none;-webkit-backdrop-filter:none;background:rgba(0,10,30,.6)}
+body:has(#music.active #mp-spotify.active.sp-embed-on) .dashboard::after{animation:none;opacity:.3}
+body:has(#music.active #mp-spotify.active.sp-embed-on) .bg-container{animation-play-state:paused}
+body:has(#music.active #mp-spotify.active.sp-embed-on) .bg-particles{display:none}
+
+.sp-actions{margin:2px 0}
+.sp-row .num{width:20px;text-align:center;font-size:11px;color:var(--text-muted);flex-shrink:0}
+.sp-row.cur .num{color:var(--neon-blue)}
+.ph{display:flex;align-items:center;justify-content:center;background:rgba(0,240,255,.1);color:var(--neon-blue);border-radius:6px}
+.mp-row .ph{width:38px;height:38px;flex-shrink:0}
+.mp-mini{display:none;position:sticky;bottom:0;align-items:center;gap:8px;padding:8px 10px;border-radius:12px;background:rgba(0,10,30,.96);border:1px solid var(--neon-blue);box-shadow:0 0 14px var(--neon-blue-glow);z-index:6;margin-top:8px}
+#music[data-panel="spotify"] .mp-mini.show{display:flex}
+.mp-mini img,.mp-mini .ph{width:36px;height:36px;border-radius:6px;object-fit:cover;flex-shrink:0}
+.mp-mini .m{flex:1;min-width:0}
+.mp-mini .t{font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mp-mini .a{font-size:10px;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mp-mini .ib.play{width:38px;height:38px;font-size:14px}
+
+/* ===== Music: hindari panel blank karena animasi/penyusutan layout ===== */
+#music .mp-panel{flex:none;min-height:40px}
+#music .mp-panel.active{animation:none;opacity:1;transform:none}
+#music .mp-row{animation:none}
+#music .mp-switch{flex:none}
+
+/* ===== INFO HP LENGKAP + ANGLE ===== */
+.tool-card.wide{grid-column:1/-1}
+.tool-rows.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));column-gap:18px}
+.tool-row span:last-child{text-align:right;word-break:break-word}
+.tb-group{display:flex;gap:6px}
+.angle-verdict{font-size:13px;font-weight:700;padding:8px 10px;border-radius:8px;border:1px solid var(--glass-border);margin-bottom:6px;background:rgba(0,240,255,.05)}
+.angle-verdict.ok{color:#3dff9a;border-color:#3dff9a;background:rgba(61,255,154,.08)}
+.angle-verdict.maybe{color:#ffcc00;border-color:#ffcc00;background:rgba(255,204,0,.08)}
+.angle-verdict.no{color:#ff6b6b;border-color:#ff6b6b;background:rgba(255,107,107,.08)}
+
+/* ================= SMOOTH V2: tanpa blur & animasi berat ================= */
+.dashboard{backdrop-filter:none;-webkit-backdrop-filter:none;background:rgba(0,10,30,.55);will-change:transform,opacity}
+.bg-container{transform:translateZ(0)}
+.nav-item.active,.hero h2,.feature-icon{animation:none}
+.hero h2{text-shadow:0 0 14px var(--neon-blue),0 0 34px var(--neon-blue-glow)}
+.hero-welcome{letter-spacing:6px;animation:wIn 1.2s var(--ease) backwards .3s}
+@keyframes wIn{from{opacity:0;transform:scale(.9)}}
+.hero-cta{position:relative;animation:none}
+.hero-cta::after{content:'';position:absolute;inset:0;border-radius:8px;border:2px solid var(--neon-blue);pointer-events:none;animation:ring 2.4s ease-out infinite}
+@keyframes ring{from{transform:scale(1);opacity:.7}to{transform:scale(1.2,1.5);opacity:0}}
+.hero::after{left:0;will-change:transform;animation:hShine 5s ease-in-out infinite}
+@keyframes hShine{0%{transform:translateX(-150%) skewX(-20deg)}60%,100%{transform:translateX(350%) skewX(-20deg)}}
+.gate-door{backface-visibility:hidden;transition:transform 1.7s cubic-bezier(.76,0,.24,1)}
+#loading-screen.open .ld-grid,#loading-screen.open .ld-scan,#loading-screen.open .ld-particles,#loading-screen.open .ptc,#loading-screen.open .glitch::before,#loading-screen.open .glitch::after{animation-play-state:paused}
+.nav-item:nth-child(9){animation-delay:1.7s}.nav-item:nth-child(10){animation-delay:1.8s}
+
+/* FPS */
+.dpad{display:grid;grid-template-areas:". u ." "l c r" ". d .";gap:6px;justify-content:center;margin-top:6px}
+.fps-size{display:flex;align-items:center;justify-content:center;gap:14px;margin-top:10px;font-weight:700}
+
+
+/* ===== PINDAH MENU HALUS: konten tidak hilang, hanya geser sedikit ===== */
+.tab-pane{animation:none}
+.tab-pane.active{animation:paneIn .45s var(--ease)}
+@keyframes paneIn{from{transform:translateY(10px)}}
+body.settled .tab-pane>*:not(.features-grid),body.settled .features-grid>*,body.settled .tips li,body.settled .hero-welcome,body.settled .section-title::after,body.settled .nav-item{animation:none}
+body.settled .hp-img{animation:charSway 6s ease-in-out infinite}
+</style>
+</head>
+<body>
+
+<div id="loading-screen">
+    <div class="gate-door gate-l">
+        <div class="ld-scene">
+            <div class="ld-grid"></div>
+            <div class="ld-scan"></div>
+            <div class="ld-particles" id="ld-particles"></div>
+            <div class="ld-center">
+                <div class="loader-ring-wrapper">
+                    <div class="loader-ring"></div>
+                    <div class="loader-ring r2"></div>
+                    <div class="loader-ring-inner"></div>
+                    <i class="fa-solid fa-rocket loader-icon"></i>
+                </div>
+                <div class="loader-title glitch" data-text="VANZIX SYS">VANZIX SYS</div>
+                <div class="loader-subtitle js-status">INITIALIZING...</div>
+                <div class="loader-progress-track"><div class="loader-progress-fill js-fill"></div></div>
+                <div class="loader-percentage js-pct">0%</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="bg-container"></div>
+<div class="bg-overlay"></div>
+<div class="bg-particles" id="bg-particles"></div>
+
+<div class="dashboard" id="dashboard-container">
+
+    <header>
+        <div class="brand">
+            <i class="fa-solid fa-rocket brand-icon"></i>
+            <div class="brand-text">
+                <h1>SISTEM SETTINGS</h1>
+                <p>GGMP 3 Prem Vanzix</p>
+            </div>
+        </div>
+        <nav class="topnav">
+        <div class="nav-item active" data-tab="home" onclick="openTab(event,'home')"><i class="fa-solid fa-house"></i>Home</div>
+        <div class="nav-item" data-tab="performance" onclick="openTab(event,'performance')">Performance</div>
+        <div class="nav-item" data-tab="sensitivity" onclick="openTab(event,'sensitivity')">Sensitivity</div>
+        <div class="nav-item" data-tab="visual" onclick="openTab(event,'visual')">Visual</div>
+        <div class="nav-item" data-tab="fps" onclick="openTab(event,'fps')"><i class="fa-solid fa-gauge-high"></i>FPS</div>
+        <div class="nav-item" data-tab="tools" onclick="openTab(event,'tools')">Tools</div>
+        <div class="nav-item" data-tab="grafik" onclick="openTab(event,'grafik')">Grafik</div>
+        <div class="nav-item" data-tab="music" onclick="openTab(event,'music')">Music</div>
+        <div class="nav-item" data-tab="order" onclick="openTab(event,'order')">Order</div>
+        <div class="nav-item" data-tab="anime" onclick="openTab(event,'anime')"><i class="fa-solid fa-robot"></i>Anime AI</div>
+    </nav>
+        <button class="mic-btn" id="mic-btn" onclick="startVoice()" aria-label="Perintah suara"><i class="fa-solid fa-microphone"></i></button>
+    </header>
+
+    <div class="main-content">
+        <main class="content-area">
+
+            <!-- TAB HOME -->
+            <div id="home" class="tab-pane active">
+                <div class="hero">
+                    <div class="hero-photo">
+                        <div class="say-wrap"><div class="say">HAIII</div></div>
+                        <img class="hp-img" src="https://plain-apac-prod-public.komododecks.com/202611/15/GS9tMrQQ9Er4NIvPdPLh/image.png" alt="GGMP Vanzix" referrerpolicy="no-referrer" onerror="this.parentNode.style.display='none'">
+                    </div>
+                    <div class="hero-badge"><i class="fa-solid fa-crown"></i> PREMIUM EDITION</div>
+                    <div class="hero-welcome">WELCOME TO</div>
+                    <h2>GGMP <span>BY VANZIX</span></h2>
+                    <p>Pusat kontrol all-in-one untuk bikin HP lu makin kenceng saat gaming. Atur performa, sensitivitas, visual, dan grafik dalam satu dashboard yang simpel, rapi, dan tinggal sekali tap.</p>
+                    <button class="hero-cta" onclick="goTab('performance')"><i class="fa-solid fa-bolt"></i> MULAI OPTIMASI</button>
+                </div>
+
+                <div class="home-stats">
+                    <div class="stat-card"><i class="fa-solid fa-sliders"></i><div class="num" id="home-active">0</div><div class="lbl">FITUR AKTIF</div></div>
+                    <div class="stat-card"><i class="fa-solid fa-layer-group"></i><div class="num" id="home-total">0</div><div class="lbl">TOTAL FITUR</div></div>
+                    <div class="stat-card"><i class="fa-solid fa-gauge-high"></i><div class="num">120Hz</div><div class="lbl">STABILITY LOCK</div></div>
+                    <div class="stat-card"><i class="fa-solid fa-shield-halved"></i><div class="num">V1</div><div class="lbl">VERSI</div></div>
+                </div>
+
+                <div class="section-title"><i class="fa-solid fa-star"></i> MENU UTAMA</div>
+                <div class="quick-grid">
+                    <div class="quick-card" onclick="goTab('performance')">
+                        <div class="qh"><i class="fa-solid fa-microchip"></i> Performance</div>
+                        <p>Bersihkan RAM, optimalkan CPU, dan cegah HP tidur biar performa tetap di atas.</p>
+                    </div>
+                    <div class="quick-card" onclick="goTab('sensitivity')">
+                        <div class="qh"><i class="fa-solid fa-crosshairs"></i> Sensitivity</div>
+                        <p>Sensitivitas lebih responsif dan lancar, lag di layar berkurang.</p>
+                    </div>
+                    <div class="quick-card" onclick="goTab('visual')">
+                        <div class="qh"><i class="fa-solid fa-eye"></i> Visual</div>
+                        <p>Monitor FPS, matikan animasi, dan kunci refresh rate agar frame stabil.</p>
+                    </div>
+                    <div class="quick-card" onclick="goTab('grafik')">
+                        <div class="qh"><i class="fa-solid fa-image"></i> Grafik</div>
+                        <p>Texture game lebih HD, jernih, dan smooth.</p>
+                    </div>
+                </div>
+
+                <div class="section-title"><i class="fa-solid fa-lightbulb"></i> TIPS PENGGUNAAN</div>
+                <div class="tips">
+                    <ul>
+                        <li><i class="fa-solid fa-circle-check"></i> Aktifkan semua toggle di menu Performance dulu sebelum mulai main.</li>
+                        <li><i class="fa-solid fa-circle-check"></i> Pilih FPS Rate Real atau FPS Fake di menu FPS untuk menampilkan overlay FPS.</li>
+                        <li><i class="fa-solid fa-circle-check"></i> Kalau ada yang terasa aneh, tekan tombol RESET di bawah untuk mengembalikan semua ke awal.</li>
+                        <li><i class="fa-solid fa-microphone"></i> Tap ikon mic di pojok kanan atas lalu ucapkan, misalnya "aktifkan semua fitur" atau "matikan grafik".</li>
+                    </ul>
+                </div>
+                <div class="home-below">
+                    <div class="section-title reveal"><i class="fa-solid fa-list-ol"></i> CARA PAKAI</div>
+                    <div class="steps">
+                        <div class="step reveal"><b>1</b><div><h4>Aktifkan Performance</h4><p>Buka menu Performance lalu nyalakan semua toggle.</p></div></div>
+                        <div class="step reveal"><b>2</b><div><h4>Atur Visual &amp; Sensitivity</h4><p>Pilih fitur yang kamu butuhkan di menu Visual dan Sensitivity.</p></div></div>
+                        <div class="step reveal"><b>3</b><div><h4>Gas Main!</h4><p>Pakai menu Tools untuk cek ping dan refresh rate sebelum mulai.</p></div></div>
+                    </div>
+
+                    <div class="section-title reveal"><i class="fa-solid fa-microphone"></i> PERINTAH SUARA (tap untuk coba)</div>
+                    <div class="chips reveal">
+                        <span class="chip" data-cmd="aktifkan semua fitur" onclick="runChip(this)">“Aktifkan semua fitur”</span>
+                        <span class="chip" data-cmd="matikan semua fitur" onclick="runChip(this)">“Matikan semua fitur”</span>
+                        <span class="chip" data-cmd="nyalakan fps fake" onclick="runChip(this)">“Nyalakan FPS fake”</span>
+                        <span class="chip" data-cmd="aktifkan grafik mc dan fps real" onclick="runChip(this)">“Aktifkan grafik MC dan FPS real”</span>
+                        <span class="chip" data-cmd="nyalakan visual" onclick="runChip(this)">“Nyalakan visual”</span>
+                        <span class="chip" data-cmd="buka menu tools" onclick="runChip(this)">“Buka menu tools”</span>
+                    </div>
+
+                    <div class="section-title reveal"><i class="fa-solid fa-circle-question"></i> FAQ</div>
+                    <div class="faq reveal">
+                        <details><summary>Kenapa perintah suara tidak jalan?</summary><p>Pastikan izin mikrofon aktif, buka lewat Chrome atau Edge dengan alamat https atau localhost, dan koneksi internet menyala karena pengenalan suaranya diproses online.</p></details>
+                        <details><summary>Bagaimana mengembalikan semua pengaturan?</summary><p>Tekan tombol RESET di bawah, atau ucapkan “reset” lewat mic.</p></details>
+                        <details><summary>Apa isi menu Tools?</summary><p>Info perangkat, tes ping, tes refresh rate, layar tetap menyala, tes sentuhan, dan timer. Semuanya membaca data asli dari perangkatmu.</p></details>
+                    </div>
+
+                    <div class="credit-card reveal">
+                        <div class="credit-title">GGMP BY VANZIX</div>
+                        <p>Terima kasih sudah memakai dashboard ini. Versi V1 Premium, dibuat oleh Developer Vanzix.</p>
+                    </div>
+                </div>
+                <div class="scroll-hint" id="scroll-hint"><i class="fa-solid fa-chevron-down"></i></div>
+
+            </div>
+
+            <!-- TAB PERFORMANCE -->
+            <div id="performance" class="tab-pane">
+                <div class="monitoring-panel">
+                    <div class="monitor-card"><div class="label">RAM</div><div class="value" id="val-ram">0%</div></div>
+                    <div class="monitor-card"><div class="label">CPU</div><div class="value" id="val-cpu">0°C</div></div>
+                    <div class="monitor-card"><div class="label">PING</div><div class="value" id="val-ping">0 ms</div></div>
+                </div>
+
+                <div class="status-panel">
+                    <h3 id="optimization-status" style="color:#ff4444;">Optimasi Tidak Aktif</h3>
+                    <p id="optimization-desc">Semua fitur optimasi sedang dimatikan.</p>
+                </div>
+
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="feature-content">
+                            <div class="feature-header"><div class="feature-icon"><i class="fa-solid fa-keyboard"></i></div><div class="feature-title">Aggressive Cleaner</div></div>
+                            <div class="feature-desc">Hapus RAM log sistem & aplikasi background secara paksa.</div>
+                        </div>
+                        <div class="feature-action">
+                            <span class="toggle-label">OFF</span>
+                            <label class="toggle-switch"><input type="checkbox" class="feature-toggle performance-toggle" id="toggle-cleaner" onchange="updateStatus()"><span class="slider"></span></label>
+                        </div>
+                    </div>
+
+                    <div class="feature-card">
+                        <div class="feature-content">
+                            <div class="feature-header"><div class="feature-icon"><i class="fa-solid fa-microchip"></i></div><div class="feature-title">CPU Optimizer</div></div>
+                            <div class="feature-desc">Meningkatkan performa kinerja CPU.</div>
+                        </div>
+                        <div class="feature-action">
+                            <span class="toggle-label">OFF</span>
+                            <label class="toggle-switch"><input type="checkbox" class="feature-toggle performance-toggle" id="toggle-cpu" onchange="updateStatus()"><span class="slider"></span></label>
+                        </div>
+                    </div>
+
+                    <div class="feature-card">
+                        <div class="feature-content">
+                            <div class="feature-header"><div class="feature-icon"><i class="fa-solid fa-power-off"></i></div><div class="feature-title">Keep CPU Awake</div></div>
+                            <div class="feature-desc">Mencegah HP tidur (Doze) agar performa tetap di atas.</div>
+                        </div>
+                        <div class="feature-action">
+                            <span class="toggle-label">OFF</span>
+                            <label class="toggle-switch"><input type="checkbox" class="feature-toggle performance-toggle" id="toggle-awake" onchange="updateStatus()"><span class="slider"></span></label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB SENSITIVITY -->
+            <div id="sensitivity" class="tab-pane">
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="feature-content">
+                            <div class="feature-header"><div class="feature-icon"><i class="fa-solid fa-crosshairs"></i></div><div class="feature-title">Debugging Sensitivity</div></div>
+                            <div class="feature-desc">Memperbaiki sensitivitas saat bermain game agar lebih lancar dan mengurangi lag di layar.</div>
+                        </div>
+                        <div class="feature-action">
+                            <span class="toggle-label">OFF</span>
+                            <label class="toggle-switch"><input type="checkbox" class="feature-toggle" onchange="toggleUI(this)"><span class="slider"></span></label>
+                        </div>
+                    </div>
+
+                    <div class="feature-card">
+                        <div class="feature-content">
+                            <div class="feature-header"><div class="feature-icon"><i class="fa-solid fa-bolt"></i></div><div class="feature-title">Mouse DPI Boost</div></div>
+                            <div class="feature-desc">Meningkatkan sensitivitas kursor (kiri).</div>
+                        </div>
+                        <div class="feature-action">
+                            <span class="toggle-label">OFF</span>
+                            <label class="toggle-switch"><input type="checkbox" class="feature-toggle" onchange="toggleUI(this)"><span class="slider"></span></label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB VISUAL -->
+            <div id="visual" class="tab-pane">
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="feature-content">
+                            <div class="feature-header"><div class="feature-icon"><i class="fa-solid fa-ban"></i></div><div class="feature-title">Disable Animations</div></div>
+                            <div class="feature-desc">Mematikan animasi sistem agar UI terasa instan tanpa delay.</div>
+                        </div>
+                        <div class="feature-action">
+                            <span class="toggle-label">OFF</span>
+                            <label class="toggle-switch"><input type="checkbox" class="feature-toggle" onchange="toggleUI(this)"><span class="slider"></span></label>
+                        </div>
+                    </div>
+
+                    <div class="feature-card">
+                        <div class="feature-content">
+                            <div class="feature-header"><div class="feature-icon"><i class="fa-solid fa-lock"></i></div><div class="feature-title">FPS Stability Lock</div></div>
+                            <div class="feature-desc">Mengunci Refresh Rate layar ke 120Hz agar frame lebih stabil.</div>
+                        </div>
+                        <div class="feature-action">
+                            <span class="toggle-label">OFF</span>
+                            <label class="toggle-switch"><input type="checkbox" class="feature-toggle" onchange="toggleUI(this)"><span class="slider"></span></label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB TOOLS -->
+            <div id="tools" class="tab-pane">
+                <div class="features-grid tools-grid">
+                    <div class="feature-card tool-card wide">
+                        <div class="feature-content">
+                            <div class="feature-header"><div class="feature-icon"><i class="fa-solid fa-mobile-screen"></i></div><div class="feature-title">Info HP Lengkap</div></div>
+                            <div class="tool-rows cols" id="dev-info"></div>
+                        </div>
+                        <div class="feature-action"><span class="toggle-label">Data asli dari browser</span>
+                            <div class="tb-group">
+                                <button class="tool-btn" onclick="toolCopyInfo()"><i class="fa-solid fa-copy"></i> Salin</button>
+                                <button class="tool-btn" onclick="toolInfo()"><i class="fa-solid fa-rotate"></i> Perbarui</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="feature-card tool-card wide">
+                        <div class="feature-content">
+                            <div class="feature-header"><div class="feature-icon"><i class="fa-solid fa-cube"></i></div><div class="feature-title">Driver ANGLE</div></div>
+                            <div class="angle-verdict" id="angle-verdict">Mengecek...</div>
+                            <div class="tool-rows cols" id="angle-rows"></div>
+                            <div class="feature-desc" id="angle-note" style="margin-top:6px">Ini perkiraan dari browser. Setelan driver sistem tidak bisa dibaca oleh halaman web, jadi cek manual di Developer options (Graphics driver preferences / ANGLE; namanya bisa beda tiap merek HP).</div>
+                        </div>
+                        <div class="feature-action"><span class="toggle-label">ANGLE = lapisan grafis Google</span><button class="tool-btn" onclick="toolInfo()"><i class="fa-solid fa-rotate"></i> Cek ulang</button></div>
+                    </div>
+
+                    <div class="feature-card tool-card">
+                        <div class="feature-content">
+                            <div class="feature-header"><div class="feature-icon"><i class="fa-solid fa-wifi"></i></div><div class="feature-title">Tes Ping</div></div>
+                            <div class="tool-big" id="ping-out">- ms</div>
+                            <div class="feature-desc" id="ping-sub">Mengukur kecepatan respon koneksi internetmu (5 kali tes).</div>
+                        </div>
+                        <div class="feature-action"><span class="toggle-label">Ke internet</span><button class="tool-btn" id="ping-btn" onclick="toolPing()"><i class="fa-solid fa-play"></i> Tes</button></div>
+                    </div>
+
+                    <div class="feature-card tool-card">
+                        <div class="feature-content">
+                            <div class="feature-header"><div class="feature-icon"><i class="fa-solid fa-gauge-high"></i></div><div class="feature-title">Tes Refresh Rate</div></div>
+                            <div class="tool-big" id="hz-out">- Hz</div>
+                            <div class="feature-desc" id="hz-sub">Mengukur refresh rate layar yang sedang dipakai browser.</div>
+                        </div>
+                        <div class="feature-action"><span class="toggle-label">Layar</span><button class="tool-btn" id="hz-btn" onclick="toolHz()"><i class="fa-solid fa-play"></i> Ukur</button></div>
+                    </div>
+
+                    <div class="feature-card tool-card">
+                        <div class="feature-content">
+                            <div class="feature-header"><div class="feature-icon"><i class="fa-solid fa-sun"></i></div><div class="feature-title">Layar Tetap Menyala</div></div>
+                            <div class="feature-desc" id="wake-sub">Mencegah layar mati otomatis selama halaman ini terbuka.</div>
+                        </div>
+                        <div class="feature-action">
+                            <span class="toggle-label">OFF</span>
+                            <label class="toggle-switch"><input type="checkbox" class="tool-toggle" onchange="toggleUI(this);toolWake(this)"><span class="slider"></span></label>
+                        </div>
+                    </div>
+
+                    <div class="feature-card tool-card">
+                        <div class="feature-content">
+                            <div class="feature-header"><div class="feature-icon"><i class="fa-solid fa-hand-pointer"></i></div><div class="feature-title">Tes Sentuhan</div></div>
+                            <div class="touch-pad" id="touch-pad"><span id="touch-out">Sentuh area ini dengan beberapa jari</span></div>
+                        </div>
+                        <div class="feature-action"><span class="toggle-label" id="touch-max">Maks: 0 jari</span><button class="tool-btn" onclick="touchMax=0;document.getElementById('touch-max').textContent='Maks: 0 jari'"><i class="fa-solid fa-rotate-right"></i> Reset</button></div>
+                    </div>
+
+                    <div class="feature-card tool-card">
+                        <div class="feature-content">
+                            <div class="feature-header"><div class="feature-icon"><i class="fa-solid fa-stopwatch"></i></div><div class="feature-title">Timer</div></div>
+                            <div class="tool-big" id="timer-out">00:00</div>
+                            <div class="timer-btns">
+                                <button class="tool-btn" onclick="toolTimer(30)">30 dtk</button>
+                                <button class="tool-btn" onclick="toolTimer(60)">1 mnt</button>
+                                <button class="tool-btn" onclick="toolTimer(300)">5 mnt</button>
+                                <button class="tool-btn" onclick="toolTimerStop()"><i class="fa-solid fa-stop"></i></button>
+                            </div>
+                        </div>
+                        <div class="feature-action"><span class="toggle-label">Bunyi &amp; getar saat habis</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB GRAFIK -->
+            <div id="grafik" class="tab-pane">
+                <div class="features-grid" style="align-items:flex-start;align-content:flex-start;">
+                    <div class="feature-card" style="max-width:400px;flex:1 1 100%;">
+                        <div class="feature-content">
+                            <div class="feature-header"><div class="feature-icon"><i class="fa-solid fa-layer-group"></i></div><div class="feature-title">GRAFIK MC</div></div>
+                            <div class="feature-desc">Mengubah grafik atau texture pada game menjadi lebih HD, jernih, dan smooth.</div>
+                        </div>
+                        <div class="feature-action">
+                            <span class="toggle-label">OFF</span>
+                            <label class="toggle-switch"><input type="checkbox" class="feature-toggle" id="toggle-grafik" onchange="toggleUI(this)"><span class="slider"></span></label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB MUSIC -->
+            <div id="music" class="tab-pane">
+                <div class="mp-switch">
+                    <button class="mp-tab active" onclick="mpShow('player',this)"><i class="fa-solid fa-music"></i> Pemutar</button>
+                    <button class="mp-tab" onclick="mpShow('spotify',this)"><i class="fa-brands fa-spotify"></i> Spotify</button>
+                </div>
+
+                <!-- PEMUTAR: cari, putar, volume, next/prev, antrian -->
+                <div id="mp-player" class="mp-panel active">
+                    <div class="mp-grid">
+                        <div class="mp-left">
+                            <div class="mp-now" id="mp-now">
+                                <div class="mp-art" id="mp-art"><i class="fa-solid fa-music"></i><div class="eq"><span></span><span></span><span></span><span></span></div></div>
+                                <div class="mp-meta">
+                                    <div class="mp-title" id="mp-title">Belum ada lagu</div>
+                                    <div class="mp-artist" id="mp-artist">Cari lagu lalu tap putar</div>
+                                </div>
+                            </div>
+                            <div class="mp-seek"><span id="mp-cur">0:00</span><input type="range" id="mp-seekbar" min="0" max="1000" value="0"><span id="mp-dur">0:00</span></div>
+                            <div class="mp-ctrl">
+                                <button class="ib" id="mp-shuf" onclick="mpShuffle()" title="Acak"><i class="fa-solid fa-shuffle"></i></button>
+                                <button class="ib big" onclick="mpPrev()" title="Sebelumnya"><i class="fa-solid fa-backward-step"></i></button>
+                                <button class="ib play" id="mp-play" onclick="mpToggle()" title="Putar/Jeda"><i class="fa-solid fa-play"></i></button>
+                                <button class="ib big" onclick="mpNext()" title="Berikutnya"><i class="fa-solid fa-forward-step"></i></button>
+                                <button class="ib" id="mp-rep" onclick="mpRepeat()" title="Ulangi antrian"><i class="fa-solid fa-repeat"></i></button>
+                            </div>
+                            <div class="mp-vol"><i id="mp-vol-ico" class="fa-solid fa-volume-high" onclick="mpMute()"></i><input type="range" id="mp-vol" min="0" max="100" value="80"><span id="mp-vol-num">80</span></div>
+                            <div class="section-title mp-qt"><i class="fa-solid fa-list"></i> ANTRIAN <button class="tool-btn" onclick="mpClear()"><i class="fa-solid fa-trash"></i> Kosongkan</button></div>
+                            <div class="mp-queue" id="mp-queue"><div class="mp-empty">Antrian kosong. Tap + pada lagu untuk menambah.</div></div>
+                        </div>
+
+                        <div class="mp-right">
+                            <div class="mp-search">
+                                <i class="fa-solid fa-magnifying-glass"></i>
+                                <input id="mp-q" type="search" placeholder="Cari lagu atau artis..." enterkeyhint="search" autocomplete="off" onkeydown="if(event.key==='Enter')mpSearch()">
+                                <button class="tool-btn" onclick="mpSearch()">Cari</button>
+                            </div>
+                            <div class="chips">
+                                <span class="chip" onclick="mpSearch('Dinda Masdok',true)"><i class="fa-solid fa-fire"></i> Dinda Masdok</span>
+                                <span class="chip" onclick="mpSearch('Teh Hijau',true)"><i class="fa-solid fa-fire"></i> Teh Hijau</span>
+                                <span class="chip" onclick="mpSearch('Sesi Potret',true)"><i class="fa-solid fa-fire"></i> Sesi Potret</span>
+                            </div>
+                            <div class="mp-results" id="mp-results"><div class="mp-empty">Hasil pencarian muncul di sini</div></div>
+                            <div class="mp-note">Pemutar ini memutar cuplikan 30 detik. Untuk lagu penuh, buka tab Spotify.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SPOTIFY EMBED -->
+                <div id="mp-spotify" class="mp-panel">
+                    <div class="playlist-card">
+                        <div class="playlist-head">
+                            <div class="playlist-head-icon"><i class="fa-brands fa-spotify"></i></div>
+                            <div class="playlist-head-info">
+                                <div class="playlist-head-title">My kaporit music</div>
+                                <div class="playlist-head-sub"><span class="dot"></span><span>36 lagu · tap lagu untuk memutar</span></div>
+                            </div>
+                        </div>
+                        <div class="sp-actions">
+                            <button class="tool-btn" onclick="spPlayAll(false)"><i class="fa-solid fa-play"></i> Putar semua</button>
+                            <button class="tool-btn" onclick="spPlayAll(true)"><i class="fa-solid fa-shuffle"></i> Acak</button>
+                            <button class="tool-btn" onclick="spAddAll()"><i class="fa-solid fa-list-ol"></i> Ke antrian</button>
+                            <button class="tool-btn" onclick="spToggleEmbed()"><i class="fa-brands fa-spotify"></i> Player Spotify asli</button>
+                            <a class="tool-btn" href="https://open.spotify.com/playlist/1f5dA2nBF8QMHDHFdjpbax" target="_blank" rel="noopener"><i class="fa-solid fa-arrow-up-right-from-square"></i> Buka di Spotify</a>
+                        </div>
+                        <div class="sp-list mp-queue" id="sp-list"></div>
+                        <div id="sp-embed-wrap" style="display:none">
+                            <iframe class="playlist-embed" id="sp-frame" data-src="https://open.spotify.com/embed/playlist/1f5dA2nBF8QMHDHFdjpbax?utm_source=generator&amp;theme=0" height="352" frameborder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"></iframe>
+                            <div class="sp-actions"><button class="tool-btn" onclick="mpLoadSpotify(true)"><i class="fa-solid fa-rotate"></i> Muat ulang</button></div>
+                        </div>
+                        <div class="mp-note">Lagu diputar sebagai cuplikan 30 detik langsung di pemutar ini.</div>
+                    </div>
+                </div>
+
+                <div class="mp-mini" id="mp-mini">
+                    <div id="mini-th"></div>
+                    <div class="m"><div class="t" id="mini-t"></div><div class="a" id="mini-a"></div></div>
+                    <button class="ib" onclick="mpPrev()"><i class="fa-solid fa-backward-step"></i></button>
+                    <button class="ib play" id="mini-play" onclick="mpToggle()"><i class="fa-solid fa-play"></i></button>
+                    <button class="ib" onclick="mpNext()"><i class="fa-solid fa-forward-step"></i></button>
+                </div>
+            </div>
+
+            <!-- TAB FPS -->
+            <div id="fps" class="tab-pane">
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="feature-content"><div class="feature-header"><div class="feature-icon"><i class="fa-solid fa-gauge-high"></i></div><div class="feature-title">FPS Rate Real</div></div>
+                        <div class="feature-desc">Angka FPS mengikuti FPS asli yang berjalan di HP kamu.</div></div>
+                        <div class="feature-action"><span class="toggle-label">OFF</span>
+                        <label class="toggle-switch"><input type="checkbox" class="feature-toggle" id="toggle-fps-real" onchange="toggleUI(this)"><span class="slider"></span></label></div>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-content"><div class="feature-header"><div class="feature-icon"><i class="fa-solid fa-wand-magic-sparkles"></i></div><div class="feature-title">FPS Fake</div></div>
+                        <div class="feature-desc">Angka FPS tampil acak di kisaran 160 - 220.</div></div>
+                        <div class="feature-action"><span class="toggle-label">OFF</span>
+                        <label class="toggle-switch"><input type="checkbox" class="feature-toggle" id="toggle-fps-fake" onchange="toggleUI(this)"><span class="slider"></span></label></div>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-content"><div class="feature-header"><div class="feature-icon"><i class="fa-solid fa-up-down-left-right"></i></div><div class="feature-title">Posisi Overlay</div></div>
+                        <div class="dpad">
+                            <button class="ib" style="grid-area:u" onclick="fpsMove(0,-5)"><i class="fa-solid fa-chevron-up"></i></button>
+                            <button class="ib" style="grid-area:l" onclick="fpsMove(-5,0)"><i class="fa-solid fa-chevron-left"></i></button>
+                            <button class="ib" style="grid-area:c" onclick="fpsReset()"><i class="fa-solid fa-rotate-left"></i></button>
+                            <button class="ib" style="grid-area:r" onclick="fpsMove(5,0)"><i class="fa-solid fa-chevron-right"></i></button>
+                            <button class="ib" style="grid-area:d" onclick="fpsMove(0,5)"><i class="fa-solid fa-chevron-down"></i></button>
+                        </div></div>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-content"><div class="feature-header"><div class="feature-icon"><i class="fa-solid fa-text-height"></i></div><div class="feature-title">Ukuran Overlay</div></div>
+                        <div class="fps-size"><button class="ib" onclick="fpsSize(-.1)"><i class="fa-solid fa-minus"></i></button><span id="fps-size-lbl">100%</span><button class="ib" onclick="fpsSize(.1)"><i class="fa-solid fa-plus"></i></button></div></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB ANIME AI -->
+            <div id="anime" class="tab-pane">
+                <div class="features-grid" style="align-items:flex-start;align-content:flex-start;">
+                    <div class="feature-card" style="max-width:400px;flex:1 1 100%;">
+                        <div class="feature-content">
+                            <div class="feature-header"><div class="feature-icon"><i class="fa-solid fa-robot"></i></div><div class="feature-title">Anime AI</div></div>
+                            <div class="feature-desc">Asisten anime yang membantu mempermudah penggunaan dan jadi teman ngobrol kamu.</div>
+                        </div>
+                        <div class="feature-action">
+                            <span class="toggle-label">OFF</span>
+                            <label class="toggle-switch"><input type="checkbox" class="feature-toggle" id="toggle-anime" onchange="toggleUI(this)"><span class="slider"></span></label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB ORDER -->
+            <div id="order" class="tab-pane">
+                <div class="placeholder-content"><i class="fa-solid fa-bag-shopping"></i><h3>Menu Order</h3></div>
+            </div>
+
+        </main>
+    </div>
+
+    <footer>
+        <div class="footer-left">
+            <div class="status-dot"></div>
+            <div>
+                <div class="footer-status">DEVELOPER VANZIX</div>
+                <div class="footer-credit">Sera Punya Arbhy 💕 biixeyaa</div>
+            </div>
+        </div>
+        <button class="btn-reset" onclick="resetToggles()"><i class="fa-solid fa-rotate-right"></i> RESET</button>
+    </footer>
+
+</div>
+
+<div id="voice-toast"></div>
+
+<script>
+window.addEventListener("error", e => { try { showToast("Error: " + e.message, true, 8000); } catch (x) {} });
+// ================= PARTIKEL =================
+function makeParticles(id, n) {
+    const box = document.getElementById(id);
+    for (let i = 0; i < n; i++) {
+        const sp = document.createElement('span');
+        const z = (Math.random() * 3 + 2) + 'px';
+        sp.className = 'ptc';
+        sp.style.left = Math.random() * 100 + '%';
+        sp.style.width = z; sp.style.height = z;
+        sp.style.animationDuration = (4 + Math.random() * 6) + 's';
+        sp.style.animationDelay = (-Math.random() * 8) + 's';
+        box.appendChild(sp);
+    }
+}
+makeParticles('ld-particles', 20);
+makeParticles('bg-particles', 18);
+
+// Gandakan adegan loading: kiri menampilkan separuh kiri, kanan separuh kanan
+(function () {
+    const l = document.querySelector('.gate-l');
+    const r = l.cloneNode(true);
+    r.classList.remove('gate-l'); r.classList.add('gate-r');
+    r.querySelectorAll('[id]').forEach(e => e.removeAttribute('id'));
+    l.parentNode.appendChild(r);
+})();
+
+const loadMsgs = [[0,'INITIALIZING...'],[20,'LOADING MODULES...'],[45,'OPTIMIZING SYSTEM...'],[70,'CONNECTING SERVICES...'],[90,'ALMOST READY...'],[100,'SYSTEM READY']];
+let lastLoadMsg = '';
+function setLoadStatus(p) {
+    let m = loadMsgs[0][1];
+    loadMsgs.forEach(x => { if (p >= x[0]) m = x[1]; });
+    if (m === lastLoadMsg) return;
+    lastLoadMsg = m;
+    document.querySelectorAll('.js-status').forEach(el => { el.textContent = m; });
+}
+
+// ================= 1. LOGIKA LOADING SCREEN =================
+let loadProgress = 0;
+let loadInterval;
+
+function startLoading() {
+    const fills = document.querySelectorAll('.js-fill');
+    const pcts = document.querySelectorAll('.js-pct');
+    const ls = document.getElementById('loading-screen');
+    const t0 = performance.now(), dur = 3400;
+    let last = -1;
+
+    function openGate() {
+        ls.classList.add('opening');
+        document.body.classList.add('ready');
+        setTimeout(() => {
+            ls.classList.add('open');
+            setTimeout(() => document.getElementById('dashboard-container').classList.add('show-dashboard'), 500);
+            setTimeout(() => document.body.classList.add('settled'), 5500);
+            setTimeout(() => {
+                ls.style.display = 'none';
+                updateStatus();
+                setInterval(updateRAM, 2000); setInterval(updateCPU, 2500); setInterval(updatePing, 4000);
+            }, 2000);
+        }, 900);
+    }
+
+    function tick(now) {
+        const t = Math.min(1, (now - t0) / dur);
+        const e = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+        fills.forEach(f => { f.style.transform = 'scaleX(' + e + ')'; });
+        loadProgress = Math.round(e * 100);
+        if (loadProgress !== last) {
+            last = loadProgress;
+            pcts.forEach(el => { el.textContent = loadProgress + '%'; });
+            setLoadStatus(loadProgress);
+        }
+        if (t < 1) requestAnimationFrame(tick);
+        else setTimeout(openGate, 400);
+    }
+    requestAnimationFrame(tick);
+}
+
+window.onload = function() {
+    startLoading();
+    refreshHome();
+    setInterval(refreshHome, 1000);
+};
+
+// ================= STATISTIK HOME =================
+function refreshHome() {
+    const all = document.querySelectorAll('.feature-toggle');
+    let on = 0;
+    all.forEach(t => { if (t.checked) on++; });
+    document.getElementById('home-active').innerText = on;
+    document.getElementById('home-total').innerText = all.length;
+}
+
+// ================= LOGIKA METRIK PERFORMA =================
+let isPinging = false;
+
+function updateRAM() {
+    const toggle = document.getElementById('toggle-cleaner');
+    if (toggle.checked) {
+        if (performance && performance.memory) {
+            let usedMemory = performance.memory.usedJSHeapSize;
+            let totalMemory = performance.memory.jsHeapSizeLimit;
+            let ramPercent = Math.round((usedMemory / totalMemory) * 100);
+            ramPercent = Math.min(95, Math.max(30, ramPercent + Math.floor(Math.random() * 5 - 2)));
+            document.getElementById('val-ram').innerText = ramPercent + '%';
+        } else {
+            let ramSim = Math.floor(Math.random() * (75 - 45 + 1)) + 45;
+            document.getElementById('val-ram').innerText = ramSim + '%';
+        }
+    } else {
+        document.getElementById('val-ram').innerText = '0%';
+    }
+}
+
+function updateCPU() {
+    const toggle = document.getElementById('toggle-cpu');
+    if (toggle.checked) {
+        let cpuTemp = Math.floor(Math.random() * (48 - 38 + 1)) + 38;
+        document.getElementById('val-cpu').innerText = cpuTemp + '°C';
+    } else {
+        document.getElementById('val-cpu').innerText = '0°C';
+    }
+}
+
+async function updatePing() {
+    const toggle = document.getElementById('toggle-awake');
+    if (toggle.checked) {
+        if (isPinging) return;
+        isPinging = true;
+        const startTime = Date.now();
+        try {
+            await fetch('https://www.google.com/favicon.ico', { mode: 'no-cors', cache: 'no-store' });
+            const endTime = Date.now();
+            let ping = endTime - startTime;
+            ping = Math.max(10, ping + Math.floor(Math.random() * 5));
+            document.getElementById('val-ping').innerText = ping + ' ms';
+        } catch (error) {
+            document.getElementById('val-ping').innerText = '15 ms';
+        }
+        isPinging = false;
+    } else {
+        document.getElementById('val-ping').innerText = '0 ms';
+    }
+}
+
+// ================= NAVIGASI MENU =================
+function openTab(evt, tabName) {
+    const tabcontent = document.getElementsByClassName("tab-pane");
+    for (let i = 0; i < tabcontent.length; i++) tabcontent[i].classList.remove("active");
+    const navItems = document.getElementsByClassName("nav-item");
+    for (let i = 0; i < navItems.length; i++) navItems[i].classList.remove("active");
+    document.getElementById(tabName).classList.add("active");
+    evt.currentTarget.classList.add("active");
+    evt.currentTarget.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+}
+
+function goTab(tabName) {
+    const item = document.querySelector('.nav-item[data-tab="' + tabName + '"]');
+    if (item) item.click();
+}
+
+const FP = { x: 0, y: 100, s: 1 };
+try { Object.assign(FP, JSON.parse(localStorage.getItem('fpsCfg')) || {}); } catch (e) {}
+function fpsApply() {
+    document.getElementById('fps-size-lbl').textContent = Math.round(FP.s * 100) + '%';
+    try { localStorage.setItem('fpsCfg', JSON.stringify(FP)); } catch (e) {}
+    try { if (window.GGMP) { if (GGMP.setFpsPosition) GGMP.setFpsPosition(FP.x, FP.y); if (GGMP.setFpsSize) GGMP.setFpsSize(FP.s); } } catch (e) {}
+}
+function fpsMove(dx, dy) { FP.x = Math.min(100, Math.max(0, FP.x + dx)); FP.y = Math.min(100, Math.max(0, FP.y + dy)); fpsApply(); }
+function fpsSize(d) { FP.s = Math.min(3, Math.max(.6, +(FP.s + d).toFixed(2))); fpsApply(); }
+function fpsReset() { FP.x = 0; FP.y = 100; FP.s = 1; fpsApply(); }
+function fpsNative(real, on) {
+    const G = window.GGMP;
+    if (!G) return;
+    try {
+        if (real) { if (G.setRealFps) G.setRealFps(on); }
+        else if (on) { if (G.setFakeFps) G.setFakeFps('auto'); }
+        else if (G.stopFakeFps) G.stopFakeFps();
+    } catch (e) {}
+}
+function fpsSwitch(cb) {
+    const real = cb.id === 'toggle-fps-real';
+    const other = document.getElementById(real ? 'toggle-fps-fake' : 'toggle-fps-real');
+    if (cb.checked) {
+        if (other.checked) {
+            other.checked = false;
+            const l = other.closest('.feature-action').querySelector('.toggle-label');
+            l.textContent = 'OFF'; l.style.color = 'var(--text-muted)';
+            fpsNative(!real, false);
+        }
+        if (!window.GGMP) showToast('Overlay FPS hanya tampil di aplikasi GGMP', true, 2500);
+        fpsNative(real, true);
+        fpsApply();
+    } else fpsNative(real, false);
+}
+// ================= FUNGSI UI TOGGLE UMUM =================
+function toggleUI(checkbox) {
+    const label = checkbox.closest('.feature-action').querySelector('.toggle-label');
+    if (label) {
+        label.textContent = checkbox.checked ? 'ON' : 'OFF';
+        label.style.color = checkbox.checked ? 'var(--neon-blue)' : 'var(--text-muted)';
+    }
+
+    if (checkbox.id === 'toggle-fps-real' || checkbox.id === 'toggle-fps-fake') fpsSwitch(checkbox);
+}
+
+// ================= UPDATE STATUS PANEL UTAMA =================
+function updateStatus() {
+    const toggleCleaner = document.getElementById('toggle-cleaner');
+    const toggleCpu = document.getElementById('toggle-cpu');
+    const toggleAwake = document.getElementById('toggle-awake');
+
+    let activeCount = 0;
+    if (toggleCleaner.checked) activeCount++;
+    if (toggleCpu.checked) activeCount++;
+    if (toggleAwake.checked) activeCount++;
+
+    [toggleCleaner, toggleCpu, toggleAwake].forEach(toggle => {
+        const label = toggle.closest('.feature-action').querySelector('.toggle-label');
+        if (label) {
+            label.textContent = toggle.checked ? 'ON' : 'OFF';
+            label.style.color = toggle.checked ? 'var(--neon-blue)' : 'var(--text-muted)';
+        }
+    });
+
+    const statusTitle = document.getElementById('optimization-status');
+    const statusDesc = document.getElementById('optimization-desc');
+
+    if (activeCount === 3) {
+        statusTitle.textContent = "Optimasi Telah Aktif";
+        statusTitle.style.color = "#fff";
+        statusDesc.textContent = "Sistem siap menyesuaikan performa HP lu.";
+    } else if (activeCount > 0) {
+        statusTitle.textContent = "Optimasi Sebagian Aktif";
+        statusTitle.style.color = "#ffcc00";
+        statusDesc.textContent = "Beberapa fitur optimasi dimatikan.";
+    } else {
+        statusTitle.textContent = "Optimasi Tidak Aktif";
+        statusTitle.style.color = "#ff4444";
+        statusDesc.textContent = "Semua fitur optimasi sedang dimatikan.";
+    }
+
+    updateRAM();
+    updateCPU();
+    updatePing();
+}
+
+// ================= RESET SEMUA TOGGLE =================
+function resetToggles() {
+    const allToggles = document.querySelectorAll('.feature-toggle');
+    allToggles.forEach(toggle => {
+        toggle.checked = false;
+        const label = toggle.closest('.feature-action').querySelector('.toggle-label');
+        if (label) {
+            label.textContent = 'OFF';
+            label.style.color = 'var(--text-muted)';
+        }
+        if (toggle.id === 'toggle-fps-real') fpsNative(true, false);
+        if (toggle.id === 'toggle-fps-fake') fpsNative(false, false);
+    });
+    updateStatus();
+}
+
+// ================= PERINTAH SUARA (sekali bicara per tap) =================
+const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+let voiceRec = null, voiceListening = false, toastTimer = null;
+
+function showToast(msg, isErr, ms) {
+    const t = document.getElementById('voice-toast');
+    t.textContent = msg;
+    t.classList.toggle('err', !!isErr);
+    t.classList.add('show');
+    clearTimeout(toastTimer);
+    if (ms !== 0) toastTimer = setTimeout(() => t.classList.remove('show'), ms || 3000);
+}
+
+const voiceAliases = {
+    'aggressive cleaner': ['cleaner', 'aggressive', 'agresif', 'pembersih', 'bersihkan ram'],
+    'cpu optimizer': ['cpu optimizer', 'optimizer', 'optimasi cpu', 'cpu'],
+    'keep cpu awake': ['keep cpu', 'cpu awake', 'awake', 'doze'],
+    'debugging sensitivity': ['debugging', 'debug'],
+    'mouse dpi boost': ['dpi', 'mouse'],
+    'fps rate real': ['fps rate real', 'fps real', 'real'],
+    'fps fake': ['fps fake', 'fake', 'palsu'],
+    'anime ai': ['anime'],
+    'disable animations': ['disable', 'animasi', 'animation'],
+    'fps stability lock': ['stability', 'stabilitas', 'lock', 'kunci', '120'],
+    'grafik mc': ['grafik', 'graphic', 'texture', 'tekstur']
+};
+
+const voiceTabs = {
+    home: ['home', 'beranda'], performance: ['performance', 'performa'],
+    sensitivity: ['sensitivity', 'sensitivitas'], visual: ['visual'],
+    tools: ['tools', 'alat'], grafik: ['grafik'], music: ['music', 'musik'], order: ['order', 'pesanan'], fps: ['fps']
+};
+
+function setToggle(input, state) {
+    if (input.checked === state) return;
+    input.checked = state;
+    input.dispatchEvent(new Event('change'));
+}
+
+const ON_RE = /nyala|aktif|hidup|\bon\b|enable|jalankan/;
+const OFF_RE = /matik|matiin|\bmati\b|nonaktif|non aktif|\boff\b/;
+
+function speak(text) {
+    if (voiceActive) return;
+    try {
+        if (!window.speechSynthesis) return;
+        speechSynthesis.cancel();
+        const u = new SpeechSynthesisUtterance(text);
+        u.lang = 'id-ID';
+        u.rate = 1.05;
+        const v = speechSynthesis.getVoices().find(x => x.lang && x.lang.toLowerCase().startsWith('id'));
+        if (v) u.voice = v;
+        speechSynthesis.speak(u);
+    } catch (e) {}
+}
+
+function joinNames(a) {
+    if (a.length === 1) return a[0];
+    return a.slice(0, -1).join(', ') + ' dan ' + a[a.length - 1];
+}
+
+function parseVoice(raw) {
+    const t = ' ' + raw.toLowerCase().replace(/[^a-z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim() + ' ';
+
+    const pm = t.trim().match(/^(?:play|putar|puter|muter|mainkan)\s+(.+)$/);
+    if (pm) { mpSearch(pm[1], true); return 'Memutar ' + pm[1]; }
+
+    if (/\breset\b/.test(t)) { resetToggles(); return 'Semua fitur direset'; }
+
+    if (!ON_RE.test(t) && !OFF_RE.test(t)) {
+        for (const tab in voiceTabs) {
+            if (voiceTabs[tab].some(k => t.includes(k))) { goTab(tab); return 'Membuka menu ' + tab; }
+        }
+        return null;
+    }
+
+    const feats = Array.from(document.querySelectorAll('.feature-card')).map(card => {
+        const title = card.querySelector('.feature-title').textContent.trim();
+        return { title, input: card.querySelector('input'), aliases: (voiceAliases[title.toLowerCase()] || []).concat(title.toLowerCase()) };
+    });
+    const pairs = [];
+    feats.forEach(f => f.aliases.forEach(a => pairs.push([a, f])));
+    pairs.sort((x, y) => y[0].length - x[0].length);
+
+    const segs = t.split(/ (?:dan|lalu|terus|kemudian|serta|sama) /);
+    const done = [];
+    let last = null;
+
+    for (let seg of segs) {
+        seg = ' ' + seg.trim() + ' ';
+        const off = OFF_RE.test(seg), on = ON_RE.test(seg);
+        const state = off ? false : (on ? true : last);
+        if (state === null) continue;
+        last = state;
+
+        if (/semua|seluruh|\ball\b/.test(seg)) {
+            document.querySelectorAll('.feature-toggle').forEach(i => setToggle(i, state));
+            done.push({ name: 'Semua fitur', state });
+            continue;
+        }
+
+        const found = new Set();
+        let rest = seg;
+        pairs.forEach(([a, f]) => {
+            if (rest.includes(a)) { found.add(f); rest = rest.split(a).join(' '); }
+        });
+        if (found.size) {
+            found.forEach(f => { setToggle(f.input, state); done.push({ name: f.title === 'GRAFIK MC' ? 'Grafik MC' : f.title, state }); });
+            continue;
+        }
+        for (const cat of ['performance', 'sensitivity', 'visual']) {
+            if (voiceTabs[cat].some(k => rest.includes(k))) {
+                document.querySelectorAll('#' + cat + ' .feature-toggle').forEach(i => setToggle(i, state));
+                done.push({ name: cat.charAt(0).toUpperCase() + cat.slice(1), state });
+                break;
+            }
+        }
+    }
+
+    if (!done.length) return null;
+    const onN = [...new Set(done.filter(d => d.state).map(d => d.name))];
+    const offN = [...new Set(done.filter(d => !d.state).map(d => d.name))];
+    const parts = [];
+    if (onN.length) parts.push(joinNames(onN) + ' on');
+    if (offN.length) parts.push(joinNames(offN) + ' off');
+    return parts.join(', ');
+}
+
+let voiceActive = false, voiceDelay = 200;
+const voiceFatal = {
+    'not-allowed': 'Izin mikrofon ditolak. Izinkan mikrofon untuk situs ini di pengaturan Chrome',
+    'service-not-allowed': 'Layanan suara tidak diizinkan di sini',
+    'audio-capture': 'Mikrofon tidak ditemukan atau sedang dipakai aplikasi lain',
+    'language-not-supported': 'Bahasa Indonesia belum didukung di perangkat ini'
+};
+function voiceStop(msg) {
+    voiceActive = false; voiceListening = false;
+    document.getElementById('mic-btn').classList.remove('listening');
+    try { if (voiceRec) voiceRec.stop(); } catch (e) {}
+    if (msg) showToast(msg, false, 2000);
+}
+function voiceRun() {
+    if (!voiceActive) return;
+    let fatal = false;
+    voiceRec = new SpeechRec();
+    voiceRec.lang = 'id-ID';
+    voiceRec.continuous = false;
+    voiceRec.interimResults = false;
+    voiceRec.maxAlternatives = 3;
+    voiceRec.onresult = (e) => {
+        const r = e.results[e.results.length - 1];
+        if (!r.isFinal) return;
+        voiceDelay = 200;
+        for (const a of Array.from(r)) {
+            const res = parseVoice(a.transcript);
+            if (res) { showToast('✓ ' + res, false, 2500); return; }
+        }
+    };
+    voiceRec.onerror = (e) => {
+        if (voiceFatal[e.error]) { fatal = true; showToast(voiceFatal[e.error], true, 4500); voiceStop(); }
+        else if (e.error === 'network') { voiceDelay = 2000; showToast('Butuh koneksi internet untuk perintah suara', true, 3000); }
+    };
+    voiceRec.onend = () => { if (voiceActive && !fatal) setTimeout(voiceRun, voiceDelay); };
+    try { voiceRec.start(); } catch (err) { setTimeout(voiceRun, 600); }
+}
+function startVoice() {
+    const btn = document.getElementById('mic-btn');
+    if (!SpeechRec) { showToast('Perintah suara belum didukung di sini. Buka lewat Chrome dengan alamat https', true, 4500); return; }
+    if (voiceActive) { voiceStop('Mic off'); return; }
+    try { if (window.speechSynthesis) speechSynthesis.cancel(); } catch (e) {}
+    voiceActive = true; voiceListening = true;
+    btn.classList.add('listening');
+    showToast('Mic on: bicara kapan saja, tap lagi untuk mematikan', false, 3000);
+    voiceRun();
+}
+
+// ================= HOME: reveal & scroll hint =================
+(function () {
+    const home = document.getElementById('home');
+    const hint = document.getElementById('scroll-hint');
+    home.addEventListener('scroll', () => hint.classList.toggle('hide', home.scrollTop > 30), { passive: true });
+    const items = document.querySelectorAll('.reveal');
+    if ('IntersectionObserver' in window) {
+        const io = new IntersectionObserver(es => es.forEach(e => {
+            if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }
+        }), { root: home, threshold: 0.15 });
+        items.forEach(i => io.observe(i));
+    } else items.forEach(i => i.classList.add('in'));
+})();
+
+function runChip(el) {
+    const res = parseVoice(el.dataset.cmd);
+    if (res) { showToast('✓ ' + res, false, 2500); speak(res); }
+}
+
+// ================= TOOLS =================
+function tEsc(t) { return String(t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+let toolInfoRows = [];
+
+function toolGpu() {
+    try {
+        const c = document.createElement('canvas');
+        let gl = c.getContext('webgl2'), ver = 'WebGL 2';
+        if (!gl) { gl = c.getContext('webgl') || c.getContext('experimental-webgl'); ver = 'WebGL 1'; }
+        if (!gl) return null;
+        const ext = gl.getExtension('WEBGL_debug_renderer_info');
+        return {
+            ver,
+            vendor: ext ? gl.getParameter(ext.UNMASKED_VENDOR_WEBGL) : gl.getParameter(gl.VENDOR),
+            renderer: ext ? gl.getParameter(ext.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER),
+            glVersion: gl.getParameter(gl.VERSION),
+            shading: gl.getParameter(gl.SHADING_LANGUAGE_VERSION),
+            maxTex: gl.getParameter(gl.MAX_TEXTURE_SIZE),
+            exts: (gl.getSupportedExtensions() || []).length
+        };
+    } catch (e) { return null; }
+}
+
+function toolBrowser() {
+    const ua = navigator.userAgent || '';
+    const pick = [['EdgA/', 'Edge'], ['Edg/', 'Edge'], ['SamsungBrowser/', 'Samsung Internet'], ['OPR/', 'Opera'], ['Firefox/', 'Firefox'], ['Chrome/', 'Chrome']];
+    for (const [k, n] of pick) { const m = ua.match(new RegExp(k.replace('/', '\\/') + '([\\d.]+)')); if (m) return n + ' ' + m[1].split('.')[0]; }
+    return 'Tidak diketahui';
+}
+
+async function toolInfo() {
+    const dpr = window.devicePixelRatio || 1;
+    const ua = navigator.userAgent || '';
+    const am = ua.match(/Android\s([\d.]+)/);
+    const gpu = toolGpu();
+    const conn = navigator.connection;
+    const R = {};
+    const rows = [
+        ['Perangkat', '...'],
+        ['Sistem', am ? 'Android ' + am[1] : (navigator.platform || '-')],
+        ['Browser', toolBrowser()],
+        ['Arsitektur', '...'],
+        ['CPU', (navigator.hardwareConcurrency || '-') + ' core'],
+        ['RAM', navigator.deviceMemory ? '≥ ' + navigator.deviceMemory + ' GB (batas baca browser)' : '-'],
+        ['GPU', gpu ? gpu.renderer : 'Tidak terbaca'],
+        ['Vendor GPU', gpu ? gpu.vendor : '-'],
+        ['Layar (fisik)', Math.round(screen.width * dpr) + '×' + Math.round(screen.height * dpr) + ' px'],
+        ['Layar (CSS)', screen.width + '×' + screen.height],
+        ['Area halaman', innerWidth + '×' + innerHeight],
+        ['Pixel ratio', dpr.toFixed(2) + 'x'],
+        ['Kedalaman warna', (screen.colorDepth || '-') + ' bit'],
+        ['Gamut warna', matchMedia('(color-gamut: rec2020)').matches ? 'Rec.2020' : matchMedia('(color-gamut: p3)').matches ? 'Display P3' : 'sRGB'],
+        ['HDR', matchMedia('(dynamic-range: high)').matches ? 'Didukung' : 'Tidak terdeteksi'],
+        ['Multi-touch', (navigator.maxTouchPoints || 0) + ' titik'],
+        ['WebGL', gpu ? gpu.ver + ' · tekstur maks ' + gpu.maxTex + ' px' : '-'],
+        ['WebGPU', navigator.gpu ? 'Tersedia' : 'Tidak tersedia'],
+        ['Koneksi', conn ? ((conn.effectiveType || '-').toUpperCase() + (conn.downlink ? ' · ' + conn.downlink + ' Mbps' : '') + (conn.rtt ? ' · RTT ' + conn.rtt + ' ms' : '')) : '-'],
+        ['Baterai', '...'],
+        ['Bahasa', navigator.language || '-'],
+        ['Zona waktu', (Intl.DateTimeFormat().resolvedOptions().timeZone) || '-']
+    ];
+    const box = document.getElementById('dev-info');
+    const draw = () => {
+        toolInfoRows = rows;
+        box.innerHTML = rows.map(r => '<div class="tool-row"><span>' + r[0] + '</span><span>' + tEsc(r[1]) + '</span></div>').join('');
+    };
+    draw();
+
+    let androidVer = am ? parseFloat(am[1]) : null;
+    try {
+        const uad = navigator.userAgentData;
+        if (uad && uad.getHighEntropyValues) {
+            const h = await uad.getHighEntropyValues(['model', 'platformVersion', 'architecture', 'bitness']);
+            const model = h.model || ((ua.match(/;\s*([^;)]+?)\s+Build/) || [])[1]) || '';
+            rows[0][1] = model || 'Disembunyikan browser';
+            if (h.platformVersion && /android/i.test(uad.platform || '')) { rows[1][1] = 'Android ' + h.platformVersion.replace(/(\.0)+$/, ''); androidVer = parseFloat(h.platformVersion); }
+            rows[3][1] = ((h.architecture || '-') + (h.bitness ? ' · ' + h.bitness + '-bit' : '')).toUpperCase();
+        } else {
+            rows[0][1] = ((ua.match(/;\s*([^;)]+?)\s+Build/) || [])[1]) || 'Tidak terbaca';
+            rows[3][1] = /arm|aarch64/i.test(navigator.platform || ua) ? 'ARM' : '-';
+        }
+    } catch (e) { rows[0][1] = 'Tidak terbaca'; rows[3][1] = '-'; }
+    draw();
+
+    try {
+        if (navigator.getBattery) {
+            const b = await navigator.getBattery();
+            rows[19][1] = Math.round(b.level * 100) + '%' + (b.charging ? ' · mengisi' : '');
+        } else rows[19][1] = '-';
+    } catch (e) { rows[19][1] = '-'; }
+    draw();
+
+    // ---- Cek ANGLE ----
+    let adapter = false;
+    try { if (navigator.gpu) adapter = !!(await navigator.gpu.requestAdapter()); } catch (e) {}
+    const renderer = gpu ? String(gpu.renderer) : '';
+    const isAngle = /ANGLE/i.test(renderer);
+    const bm = renderer.match(/ANGLE \((.*)\)/i);
+    const backend = /vulkan/i.test(renderer) ? 'Vulkan' : /metal/i.test(renderer) ? 'Metal' : /direct3d|d3d/i.test(renderer) ? 'Direct3D' : /opengl es|gles/i.test(renderer) ? 'OpenGL ES' : '-';
+    const vulkanHint = /vulkan/i.test(renderer) || adapter;
+    const v = document.getElementById('angle-verdict');
+    let cls, msg;
+    if (androidVer !== null && androidVer < 10) { cls = 'no'; msg = '✗ Kemungkinan tidak didukung (Android di bawah 10)'; }
+    else if (isAngle && vulkanHint) { cls = 'ok'; msg = '✓ ANGLE terdeteksi dan GPU mendukung Vulkan, kemungkinan besar didukung'; }
+    else if (isAngle) { cls = 'ok'; msg = '✓ ANGLE terdeteksi di browser ini'; }
+    else if (androidVer !== null && androidVer >= 10 && vulkanHint) { cls = 'maybe'; msg = '? Browser belum memakai ANGLE, tapi Android dan GPU memenuhi syarat. Kemungkinan bisa diaktifkan'; }
+    else if (androidVer !== null && androidVer >= 10) { cls = 'maybe'; msg = '? ANGLE tidak terdeteksi, dukungan Vulkan tidak bisa dipastikan. Cek manual di Developer options'; }
+    else { cls = 'maybe'; msg = '? Tidak bisa dipastikan dari perangkat ini. Cek manual di Developer options'; }
+    v.className = 'angle-verdict ' + cls;
+    v.textContent = msg;
+    const ar = [
+        ['ANGLE di browser', isAngle ? 'Terdeteksi' : 'Tidak terdeteksi'],
+        ['Backend grafis', backend],
+        ['Dukungan Vulkan', vulkanHint ? 'Ada petunjuk (Vulkan/WebGPU)' : 'Tidak terdeteksi'],
+        ['Versi Android', androidVer !== null ? String(androidVer) : '-'],
+        ['Renderer', bm ? bm[1] : (renderer || '-')],
+        ['Versi OpenGL ES', gpu ? gpu.glVersion : '-']
+    ];
+    document.getElementById('angle-rows').innerHTML = ar.map(r => '<div class="tool-row"><span>' + r[0] + '</span><span>' + tEsc(r[1]) + '</span></div>').join('');
+}
+
+function toolCopyInfo() {
+    const txt = toolInfoRows.map(r => r[0] + ': ' + r[1]).join('\n');
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(txt).then(() => showToast('✓ Info HP disalin', false, 2000)).catch(() => showToast('Gagal menyalin', true, 2500));
+    } else showToast('Browser tidak mengizinkan menyalin', true, 2500);
+}
+
+async function toolPing() {
+    const btn = document.getElementById('ping-btn');
+    const out = document.getElementById('ping-out');
+    const sub = document.getElementById('ping-sub');
+    btn.disabled = true;
+    const times = [];
+    for (let i = 0; i < 5; i++) {
+        sub.textContent = 'Mengukur... ' + (i + 1) + '/5';
+        const t0 = performance.now();
+        try {
+            await fetch('https://www.google.com/favicon.ico?t=' + Date.now(), { mode: 'no-cors', cache: 'no-store' });
+            times.push(performance.now() - t0);
+            out.textContent = Math.round(times[times.length - 1]) + ' ms';
+        } catch (e) { break; }
+    }
+    if (times.length) {
+        const avg = Math.round(times.reduce((a, b) => a + b, 0) / times.length);
+        out.textContent = avg + ' ms';
+        sub.textContent = 'Rata-rata · min ' + Math.round(Math.min(...times)) + ' · maks ' + Math.round(Math.max(...times)) + ' ms';
+    } else {
+        out.textContent = '- ms';
+        sub.textContent = 'Gagal mengukur. Cek koneksi internetmu.';
+    }
+    btn.disabled = false;
+}
+
+function toolHz() {
+    const btn = document.getElementById('hz-btn');
+    const out = document.getElementById('hz-out');
+    const sub = document.getElementById('hz-sub');
+    btn.disabled = true;
+    sub.textContent = 'Mengukur...';
+    let n = 0, t0 = 0;
+    function f(t) {
+        if (!t0) t0 = t; else n++;
+        if (t - t0 < 1500) { requestAnimationFrame(f); return; }
+        let hz = n * 1000 / (t - t0);
+        const std = [30, 48, 60, 72, 90, 120, 144, 165];
+        const near = std.reduce((a, b) => Math.abs(b - hz) < Math.abs(a - hz) ? b : a);
+        if (Math.abs(near - hz) / near < 0.08) hz = near;
+        out.textContent = Math.round(hz) + ' Hz';
+        sub.textContent = 'Hasil ukur browser saat ini (bisa lebih rendah jika browser membatasi).';
+        btn.disabled = false;
+    }
+    requestAnimationFrame(f);
+}
+
+let wakeLock = null;
+async function toolWake(cb) {
+    const sub = document.getElementById('wake-sub');
+    if (!('wakeLock' in navigator)) {
+        cb.checked = false; toggleUI(cb);
+        sub.textContent = 'Browser ini belum mendukung fitur layar tetap menyala.';
+        return;
+    }
+    try {
+        if (cb.checked) { wakeLock = await navigator.wakeLock.request('screen'); sub.textContent = 'Aktif: layar tidak akan mati selama halaman ini terbuka.'; }
+        else { if (wakeLock) await wakeLock.release(); wakeLock = null; sub.textContent = 'Mencegah layar mati otomatis selama halaman ini terbuka.'; }
+    } catch (e) {
+        cb.checked = false; toggleUI(cb);
+        sub.textContent = 'Gagal mengaktifkan (butuh https atau localhost).';
+    }
+}
+document.addEventListener('visibilitychange', async () => {
+    const cb = document.querySelector('.tool-toggle');
+    if (document.visibilityState === 'visible' && cb && cb.checked && 'wakeLock' in navigator) {
+        try { wakeLock = await navigator.wakeLock.request('screen'); } catch (e) {}
+    }
+});
+
+let touchMax = 0;
+(function () {
+    const pad = document.getElementById('touch-pad');
+    const out = document.getElementById('touch-out');
+    const mx = document.getElementById('touch-max');
+    function upd(e) {
+        e.preventDefault();
+        const n = e.touches.length;
+        pad.classList.toggle('active', n > 0);
+        out.textContent = n > 0 ? n + ' jari' : 'Sentuh area ini dengan beberapa jari';
+        if (n > touchMax) { touchMax = n; mx.textContent = 'Maks: ' + n + ' jari'; }
+    }
+    ['touchstart', 'touchmove', 'touchend', 'touchcancel'].forEach(ev => pad.addEventListener(ev, upd, { passive: false }));
+})();
+
+let tmr = null, tleft = 0;
+function timerRender() {
+    const m = String(Math.floor(tleft / 60)).padStart(2, '0'), sec = String(tleft % 60).padStart(2, '0');
+    document.getElementById('timer-out').textContent = m + ':' + sec;
+}
+function toolTimer(sec) {
+    clearInterval(tmr);
+    tleft = sec; timerRender();
+    tmr = setInterval(() => {
+        tleft--; timerRender();
+        if (tleft <= 0) {
+            clearInterval(tmr); tmr = null;
+            showToast('⏰ Waktu habis', false, 3500);
+            speak('Waktu habis');
+            if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+        }
+    }, 1000);
+}
+function toolTimerStop() { clearInterval(tmr); tmr = null; tleft = 0; timerRender(); }
+
+toolInfo();
+
+// ================= MUSIC PLAYER =================
+const MP = { q: [], i: -1, audio: new Audio(), shuffle: false, repeat: false, results: [], prevVol: 80 };
+MP.audio.volume = 0.8;
+MP.cache = {};
+MP.audio.preload = 'auto';
+const mpEl = id => document.getElementById(id);
+const mpEsc = t => String(t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+function mpFmt(t) { if (!isFinite(t)) return '0:00'; return Math.floor(t / 60) + ':' + String(Math.floor(t % 60)).padStart(2, '0'); }
+
+function mpShow(which, btn) {
+    document.querySelectorAll('.mp-tab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.mp-panel').forEach(p => p.classList.remove('active'));
+    mpEl('mp-' + which).classList.add('active');
+    mpEl('music').dataset.panel = which;
+    mpEl('music').scrollTop = 0;
+    void mpEl('mp-' + which).offsetHeight;
+}
+function mpLoadSpotify(force) {
+    const f = mpEl('sp-frame');
+    if (force) { f.src = 'about:blank'; setTimeout(() => { f.src = f.dataset.src; }, 150); return; }
+    if (!f.getAttribute('src')) f.src = f.dataset.src;
+}
+
+async function mpFetch(q, country) {
+    const r = await fetch('https://itunes.apple.com/search?term=' + encodeURIComponent(q) + '&media=music&entity=song&limit=20&country=' + country);
+    const j = await r.json();
+    return j.results.filter(x => x.previewUrl).map(x => ({ id: x.trackId, title: x.trackName, artist: x.artistName, art: x.artworkUrl100, url: x.previewUrl }));
+}
+
+async function mpSearch(term, autoplay) {
+    const q = (term || mpEl('mp-q').value).trim();
+    if (!q) return;
+    mpEl('mp-q').value = q;
+    const box = mpEl('mp-results');
+    box.innerHTML = '<div class="mp-empty">Mencari...</div>';
+    try {
+        let res = await mpFetch(q, 'ID');
+        if (!res.length) res = await mpFetch(q, 'US');
+        MP.results = res;
+        if (!res.length) {
+            box.innerHTML = '<div class="mp-empty">Lagu tidak ditemukan</div>';
+            if (autoplay) showToast('Lagu "' + q + '" tidak ditemukan', true, 3000);
+            return;
+        }
+        mpRenderResults();
+        if (autoplay) mpPlayNow(res[0]);
+    } catch (e) {
+        box.innerHTML = '<div class="mp-empty">Gagal mencari. Cek koneksi internet.</div>';
+    }
+}
+
+function mpRenderResults() {
+    mpEl('mp-results').innerHTML = MP.results.map((t, i) =>
+        '<div class="mp-row" style="animation-delay:' + (i * 0.04) + 's"><img src="' + mpEsc(t.art) + '" alt="">' +
+        '<div class="info" onclick="mpPlayNow(MP.results[' + i + '])"><div class="t">' + mpEsc(t.title) + '</div><div class="a">' + mpEsc(t.artist) + '</div></div>' +
+        '<button class="ib" onclick="mpPlayNow(MP.results[' + i + '])" title="Putar"><i class="fa-solid fa-play"></i></button>' +
+        '<button class="ib" onclick="mpAdd(MP.results[' + i + '])" title="Tambah ke antrian"><i class="fa-solid fa-plus"></i></button></div>').join('');
+}
+
+function mpThumb(t) {
+    return t.art ? '<img src="' + mpEsc(t.art) + '" alt="">' : '<div class="ph"><i class="fa-solid fa-music"></i></div>';
+}
+function mpRenderQueue() {
+    const box = mpEl('mp-queue');
+    if (!MP.q.length) { box.innerHTML = '<div class="mp-empty">Antrian kosong. Tap + pada lagu untuk menambah.</div>'; return; }
+    box.innerHTML = MP.q.map((t, i) =>
+        '<div class="mp-row' + (i === MP.i ? ' cur' : '') + '">' + mpThumb(t) +
+        '<div class="info" onclick="mpPlayIdx(' + i + ')"><div class="t">' + mpEsc(t.title) + '</div><div class="a">' + mpEsc(t.artist) + '</div></div>' +
+        '<button class="ib" onclick="mpMove(' + i + ',-1)" title="Naik"><i class="fa-solid fa-chevron-up"></i></button>' +
+        '<button class="ib" onclick="mpMove(' + i + ',1)" title="Turun"><i class="fa-solid fa-chevron-down"></i></button>' +
+        '<button class="ib" onclick="mpRemove(' + i + ')" title="Hapus"><i class="fa-solid fa-xmark"></i></button></div>').join('');
+}
+
+function mpUpdateNow() {
+    const t = MP.q[MP.i];
+    mpEl('mp-title').textContent = t ? t.title : 'Belum ada lagu';
+    mpEl('mp-artist').textContent = t ? t.artist : 'Cari lagu lalu tap putar';
+    const art = mpEl('mp-art');
+    const old = art.querySelector('img');
+    if (old) old.remove();
+    if (t && t.art) {
+        const im = document.createElement('img');
+        im.src = t.art.replace('100x100', '300x300');
+        im.alt = '';
+        art.insertBefore(im, art.firstChild);
+    }
+    mpEl('mini-t').textContent = t ? t.title : '';
+    mpEl('mini-a').textContent = t ? t.artist : '';
+    mpEl('mini-th').innerHTML = t ? mpThumb(t) : '';
+    mpEl('mp-mini').classList.toggle('show', !!t);
+    mpUpdatePlay();
+}
+function mpUpdatePlay() {
+    const playing = !MP.audio.paused && MP.i >= 0;
+    mpEl('mp-now').classList.toggle('playing', playing);
+    const ic = '<i class="fa-solid fa-' + (playing ? 'pause' : 'play') + '"></i>';
+    mpEl('mp-play').innerHTML = ic;
+    mpEl('mini-play').innerHTML = ic;
+}
+
+let mpSkip = 0;
+async function mpPlayIdx(i) {
+    if (i < 0 || i >= MP.q.length) return;
+    MP.i = i;
+    const t = MP.q[i];
+    mpUpdateNow(); mpRenderQueue(); spMark();
+    if (!t.url) {
+        showToast('Memuat "' + t.title + '"...', false, 0);
+        const ok = await mpResolve(t);
+        if (MP.i !== i) return;
+        if (!ok) {
+            showToast('Cuplikan "' + t.title + '" tidak ditemukan', true, 2500);
+            if (++mpSkip < MP.q.length && MP.q.length > 1) mpNext(true); else mpSkip = 0;
+            return;
+        }
+        showToast('▶ ' + t.title, false, 1500);
+        mpUpdateNow(); mpRenderQueue();
+    }
+    mpSkip = 0;
+    MP.audio.src = t.url;
+    MP.audio.play().catch(() => showToast('Tap tombol putar untuk memulai', true, 3000));
+    if ('mediaSession' in navigator && t.art) {
+        try { navigator.mediaSession.metadata = new MediaMetadata({ title: t.title, artist: t.artist, artwork: [{ src: t.art.replace('100x100', '300x300'), sizes: '300x300' }] }); } catch (e) {}
+    }
+}
+function mpPlayNow(t) {
+    const ex = MP.q.findIndex(x => x.id === t.id);
+    if (ex >= 0) { mpPlayIdx(ex); return; }
+    MP.q.splice(MP.i + 1, 0, t);
+    mpPlayIdx(MP.i + 1);
+}
+function mpAdd(t) {
+    MP.q.push(t);
+    showToast('+ ' + t.title + ' masuk antrian', false, 2000);
+    if (MP.i < 0) mpPlayIdx(MP.q.length - 1); else mpRenderQueue();
+}
+function mpToggle() {
+    if (MP.i < 0) { if (MP.q.length) mpPlayIdx(0); else showToast('Cari lagu dulu', true, 2500); return; }
+    if (MP.audio.paused) MP.audio.play().catch(() => {}); else MP.audio.pause();
+}
+function mpNext(auto) {
+    if (!MP.q.length) return;
+    let n;
+    if (MP.shuffle && MP.q.length > 1) { do { n = Math.floor(Math.random() * MP.q.length); } while (n === MP.i); }
+    else {
+        n = MP.i + 1;
+        if (n >= MP.q.length) {
+            if (MP.repeat || !auto) n = 0;
+            else { MP.audio.pause(); MP.audio.currentTime = 0; mpUpdatePlay(); return; }
+        }
+    }
+    mpPlayIdx(n);
+}
+function mpPrev() {
+    if (!MP.q.length) return;
+    if (MP.audio.currentTime > 3) { MP.audio.currentTime = 0; return; }
+    mpPlayIdx(MP.i <= 0 ? MP.q.length - 1 : MP.i - 1);
+}
+function mpShuffle() { MP.shuffle = !MP.shuffle; mpEl('mp-shuf').classList.toggle('on', MP.shuffle); showToast('Acak ' + (MP.shuffle ? 'on' : 'off'), false, 1500); }
+function mpRepeat() { MP.repeat = !MP.repeat; mpEl('mp-rep').classList.toggle('on', MP.repeat); showToast('Ulangi antrian ' + (MP.repeat ? 'on' : 'off'), false, 1500); }
+
+function mpMove(i, d) {
+    const j = i + d;
+    if (j < 0 || j >= MP.q.length) return;
+    [MP.q[i], MP.q[j]] = [MP.q[j], MP.q[i]];
+    if (MP.i === i) MP.i = j; else if (MP.i === j) MP.i = i;
+    mpRenderQueue();
+}
+function mpStop() { MP.i = -1; MP.audio.pause(); MP.audio.removeAttribute('src'); MP.audio.load(); mpUpdateNow(); mpRenderQueue(); mpEl('mp-seekbar').value = 0; mpEl('mp-cur').textContent = '0:00'; mpEl('mp-dur').textContent = '0:00'; }
+function mpRemove(i) {
+    const wasCur = i === MP.i;
+    MP.q.splice(i, 1);
+    if (!MP.q.length) { mpStop(); return; }
+    if (i < MP.i) MP.i--;
+    if (wasCur) { mpPlayIdx(Math.min(i, MP.q.length - 1)); return; }
+    mpRenderQueue();
+}
+function mpClear() { MP.q = []; mpStop(); }
+
+function mpSetVol(v) {
+    MP.audio.volume = v / 100;
+    mpEl('mp-vol').value = v;
+    mpEl('mp-vol-num').textContent = v;
+    mpEl('mp-vol-ico').className = 'fa-solid fa-volume-' + (v == 0 ? 'xmark' : v < 40 ? 'low' : 'high');
+}
+function mpMute() {
+    const cur = +mpEl('mp-vol').value;
+    if (cur > 0) { MP.prevVol = cur; mpSetVol(0); } else mpSetVol(MP.prevVol || 80);
+}
+
+(function () {
+    const a = MP.audio, bar = mpEl('mp-seekbar');
+    a.addEventListener('timeupdate', () => {
+        if (a.duration) { bar.value = (a.currentTime / a.duration) * 1000; }
+        mpEl('mp-cur').textContent = mpFmt(a.currentTime);
+    });
+    a.addEventListener('loadedmetadata', () => { mpEl('mp-dur').textContent = mpFmt(a.duration); });
+    a.addEventListener('play', mpUpdatePlay);
+    a.addEventListener('pause', mpUpdatePlay);
+    a.addEventListener('ended', () => mpNext(true));
+    a.addEventListener('error', () => { if (MP.i >= 0) showToast('Lagu gagal dimuat, coba lagu lain', true, 3000); });
+    bar.addEventListener('input', () => { if (a.duration) a.currentTime = (bar.value / 1000) * a.duration; });
+    mpEl('mp-vol').addEventListener('input', e => mpSetVol(+e.target.value));
+    if ('mediaSession' in navigator) {
+        const ms = navigator.mediaSession;
+        try {
+            ms.setActionHandler('play', () => a.play());
+            ms.setActionHandler('pause', () => a.pause());
+            ms.setActionHandler('nexttrack', () => mpNext());
+            ms.setActionHandler('previoustrack', () => mpPrev());
+        } catch (e) {}
+    }
+})();
+
+// ================= PLAYLIST SPOTIFY: daftar lagu (diputar lewat cuplikan) =================
+const SP = [
+ ['Beauty And A Beat','Justin Bieber, Nicki Minaj','3:47'],['BIRDS OF A FEATHER','Billie Eilish','3:30'],['Baby','Justin Bieber, Ludacris','3:34'],
+ ['Shape of You','Ed Sheeran','3:53'],['Sapphire','Ed Sheeran','2:59'],['Moonlight','XXXTENTACION','2:15'],
+ ['See You Again (feat. Charlie Puth)','Wiz Khalifa, Charlie Puth','3:49'],['Hope','XXXTENTACION','1:50'],['Happier','Marshmello, Bastille','3:34'],
+ ['People','Libianca','3:04'],['Night Changes','One Direction','3:46'],['That Should Be Me','Justin Bieber','3:52'],
+ ['Perfect','Ed Sheeran','4:23'],['Best Friend','Rex Orange County','4:22'],['Happiness','Rex Orange County','4:39'],
+ ['Payphone','Maroon 5, Wiz Khalifa','3:51'],['Replay','Iyaz','3:02'],['Lonely','Akon','3:55'],
+ ['Beautiful Girls','Sean Kingston','3:45'],['Memories','Maroon 5','3:09'],['I Don\'t Care','Ed Sheeran, Justin Bieber','3:39'],
+ ['Pompeii','Bastille','3:34'],['Blank Space','Taylor Swift','3:51'],['That\'s What I Like','Bruno Mars','3:26'],
+ ['The Lazy Song','Bruno Mars','3:09'],['Sunflower - Spider-Man: Into the Spider-Verse','Post Malone, Swae Lee','2:37'],['Let Me Love You','DJ Snake, Justin Bieber','3:25'],
+ ['nuts','Lil Peep, rainy bear','1:25'],['Love The Way You Lie','Eminem, Rihanna','4:23'],['No Lie','Sean Paul, Dua Lipa','3:41'],
+ ['Rude','MAGIC!','3:44'],['We Don\'t Talk Anymore (feat. Selena Gomez)','Charlie Puth, Selena Gomez','3:37'],['Starboy','The Weeknd, Daft Punk','3:50'],
+ ['Black Beatles','Rae Sremmurd, Gucci Mane','4:51'],['Young Dumb & Broke','Khalid','3:22'],['Greseala Mea','Claudia Puican, Armin Nicoara','3:23']
+].map((x, i) => ({ id: 'sp' + i, title: x[0], artist: x[1], dur: x[2], art: '', url: '', q: x[0].replace(/\(.*?\)| - .*$/g, '').trim() + ' ' + x[1].split(',')[0] }));
+
+async function mpResolve(t) {
+    if (MP.cache[t.q]) { Object.assign(t, MP.cache[t.q]); return true; }
+    try {
+        let res = await mpFetch(t.q, 'ID');
+        if (!res.length) res = await mpFetch(t.q, 'US');
+        if (!res.length) return false;
+        const want = t.title.toLowerCase().replace(/\(.*?\)| - .*$/g, '').trim();
+        const a0 = t.artist.split(',')[0].trim().toLowerCase();
+        const best = res.find(r => r.title.toLowerCase().includes(want) && r.artist.toLowerCase().includes(a0)) ||
+                     res.find(r => r.title.toLowerCase().includes(want)) || res[0];
+        MP.cache[t.q] = { art: best.art, url: best.url };
+        Object.assign(t, MP.cache[t.q]);
+        return true;
+    } catch (e) { return false; }
+}
+
+function spRender() {
+    mpEl('sp-list').innerHTML = SP.map((t, i) =>
+        '<div class="mp-row sp-row" data-sid="' + t.id + '" style="animation-delay:' + Math.min(i, 12) * 0.03 + 's"><span class="num">' + (i + 1) + '</span>' +
+        '<div class="info" onclick="spPlay(' + i + ')"><div class="t">' + mpEsc(t.title) + '</div><div class="a">' + mpEsc(t.artist) + ' · ' + t.dur + '</div></div>' +
+        '<button class="ib" onclick="spPlay(' + i + ')" title="Putar"><i class="fa-solid fa-play"></i></button>' +
+        '<button class="ib" onclick="mpAdd(Object.assign({},SP[' + i + ']))" title="Tambah ke antrian"><i class="fa-solid fa-plus"></i></button></div>').join('');
+}
+function spMark() {
+    const cur = MP.q[MP.i];
+    document.querySelectorAll('.sp-row').forEach(r => r.classList.toggle('cur', !!cur && r.dataset.sid === cur.id));
+}
+function spPlay(i) { mpPlayNow(Object.assign({}, SP[i])); }
+function spPlayAll(shuf) {
+    MP.q = SP.map(t => Object.assign({}, t));
+    MP.shuffle = !!shuf;
+    mpEl('mp-shuf').classList.toggle('on', MP.shuffle);
+    mpPlayIdx(shuf ? Math.floor(Math.random() * MP.q.length) : 0);
+}
+function spAddAll() {
+    let n = 0;
+    SP.forEach(t => { if (!MP.q.some(x => x.id === t.id)) { MP.q.push(Object.assign({}, t)); n++; } });
+    showToast(n + ' lagu masuk antrian', false, 2000);
+    if (MP.i < 0 && MP.q.length) mpPlayIdx(0); else mpRenderQueue();
+}
+function spToggleEmbed() {
+    const w = mpEl('sp-embed-wrap');
+    const on = w.style.display === 'none';
+    w.style.display = on ? 'block' : 'none';
+    mpEl('mp-spotify').classList.toggle('sp-embed-on', on);
+    if (on) mpLoadSpotify();
+}
+spRender();
+
+// Tampilkan pesan jika ada error JavaScript (membantu mencari penyebab layar kosong)
+window.addEventListener('error', e => { try { showToast('Error: ' + e.message, true, 7000); } catch (x) {} });
+</script>
+</body>
+</html>
